@@ -58,3 +58,8 @@ img {
   z-index: 3;
   right: 20px;
 }/*# sourceMappingURL=style.css.map */
+
+.container-fluid {
+  position: relative;
+  z-index: 4; /* 背景要素より高いz-index */
+}
