@@ -1,4 +1,4 @@
-<?php require '../db-connect.php'; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,7 @@
   <link href="bootstrap.min.css" rel="stylesheet">
 </head>
   <body>
+  <?php require '../db-connect.php'; ?>
     <section id="hero">
         <div class="hero-container">
           <h1>Anonymous Online</h1>
@@ -19,3 +20,6 @@
     </section>
 </body>
 </html>
+<?php
+ $pdo = null;   //DB切断
+?>
