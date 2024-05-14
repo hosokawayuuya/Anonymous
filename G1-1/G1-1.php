@@ -18,8 +18,4 @@
           <a href="../G1-2/G1-2.html" class="btn-get-started scrollto">ルーム作成</a>
         </div>
     </section>
-</body>
-</html>
-<?php
- $pdo = null;   //DB切断
-?>
+<?php require '../footer.php'; ?>
