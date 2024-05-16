@@ -24,7 +24,6 @@ foreach ($colorDistribution as $color => $count) {
 }
 shuffle($colors);
 
-
 // カードの配列を生成
 $cards = [];
 foreach ($names as $name) {
@@ -69,7 +68,6 @@ foreach ($names as $name) {
             font-weight: bold;
         }
 
-
         .row {
             display: flex;
             justify-content: center;
@@ -90,28 +88,27 @@ foreach ($names as $name) {
 <body>
 
     <div class="counts">
-        <div>赤の残り枚数: <span id="count-red">9</span></div>
-        <div>青の残り枚数: <span id="count-blue">8</span></div>
+        <div>赤の残り枚数: <span id="count-red"><?php echo $colorDistribution['red']; ?></span></div>
+        <div>青の残り枚数: <span id="count-blue"><?php echo $colorDistribution['blue']; ?></span></div>
     </div>
     
     <div class="container">
-    <?php echo "Ope" ?>
-    <?php $index = 0; ?>
-    <?php for ($row = 0; $row < 5; $row++): ?>
-        <div class="row">
-            <?php for ($col = 0; $col < 5; $col++): ?>
-                <?php $card = $cards[$index++]; ?>
-                <button class="card-Ope" style="background-color: <?= $card['color']; ?>;" data-color="<?= $card['color']; ?>">
-                    <?= $card['name']; ?>
-                </button>
-            <?php endfor; ?>
-        </div>
-    <?php endfor; ?>
-</div>
+        <?php echo "Ope" ?>
+        <?php $index = 0; ?>
+        <?php for ($row = 0; $row < 5; $row++): ?>
+            <div class="row">
+                <?php for ($col = 0; $col < 5; $col++): ?>
+                    <?php $card = $cards[$index++]; ?>
+                    <button class="card-Ope" style="background-color: <?= $card['color']; ?>;" data-color="<?= $card['color']; ?>">
+                        <?= $card['name']; ?>
+                    </button>
+                <?php endfor; ?>
+            </div>
+        <?php endfor; ?>
+    </div>
 
     <div class="container" style="margin-top: 20px;"> <!-- グリッド間に余白を設ける -->
-
-    <?php echo "Asu" ?>
+        <?php echo "Asu" ?>
         <?php $index = 0; ?> <!-- インデックスをリセット -->
         <?php for ($row = 0; $row < 5; $row++): ?>
             <div class="row">
@@ -126,20 +123,27 @@ foreach ($names as $name) {
     </div>
 
     <script>
+        // Initial color counts
+        let colorCounts = {
+            red: <?php echo $colorDistribution['red']; ?>,
+            blue: <?php echo $colorDistribution['blue']; ?>
+        };
+
         function flipCard(card) {
+            const color = card.getAttribute('data-color');
+
             // カードの背景色をデータ属性から取得し、設定
-            card.style.backgroundColor = card.getAttribute('data-color');
+            card.style.backgroundColor = color;
+
             // 名前の色を変更して見えるように
             card.style.color = 'orange';
 
-            if (color === 'red' || color === 'blue') {
-                const countElement = document.getElementById('count-' + color);
-                let count = parseInt(countElement.textContent);
-                countElement.textContent = --count;
+            // Decrement the count and update the display
+            if (colorCounts[color] !== undefined && colorCounts[color] > 0) {
+                colorCounts[color]--;
+                document.getElementById(`count-${color}`).innerText = colorCounts[color];
             }
         }
-
-        
     </script>
 </body>
 </html>
