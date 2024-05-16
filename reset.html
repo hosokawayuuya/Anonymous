@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ポップアップリセット承認</title>
+<style>
+    dialog {
+        border: 1px solid #000; /* 境界線 */
+        padding: 20px; /* パディング */
+        width: 300px; /* 幅 */
+    }
+</style>
+</head>
+<body>
+
+<button onclick="document.getElementById('myDialog').showModal();">リセット</button>
+
+<dialog id="myDialog">
+    <p>本当にリセットしますか？</p>
+    <form method="dialog">
+        <button type="submit" value="confirm">リセット承認</button>
+    </form>
+</dialog>
+
+</body>
+</html>

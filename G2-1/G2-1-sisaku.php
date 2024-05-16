@@ -3,11 +3,12 @@
 <?php
 $pdo = new PDO($connect, USER, PASS);
 
+// カード名をランダムに取得
 $sql = "SELECT DISTINCT card_name FROM Card ORDER BY RAND() LIMIT 25";
 $stmt = $pdo->query($sql);
 $names = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-// 各色の枚数
+// 各色の枚数を設定
 $colorDistribution = [
     'red' => 9,
     'blue' => 8,
@@ -38,7 +39,7 @@ foreach ($names as $name) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>5x5 Card Grid</title>
+    <title>Anonimous</title>
     <link href="style.css" rel="stylesheet">
     <style>
         .card-Asu {
@@ -83,6 +84,39 @@ foreach ($names as $name) {
             margin-bottom: 10px;
         }
 
+        /* ポップアップウィンドウのスタイル */
+        .popup {
+            display: none; /* 初期状態では非表示 */
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .popup h2 {
+            margin-top: 0;
+        }
+
+        .popup button {
+            margin-top: 20px;
+        }
+
+        .overlay {
+            display: none; /* 初期状態では非表示 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +141,25 @@ foreach ($names as $name) {
         <?php endfor; ?>
     </div>
 
+    <form action="G2-1-sisaku.php" method="post">
+        ヒントを入力：    
+        <input type="text" name="hint" required>
+
+        <select name="number" required>
+            <option value="0">-</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+        </select>
+        <button type="submit">送信</button>
+    </form>
+
     <div class="container" style="margin-top: 20px;"> <!-- グリッド間に余白を設ける -->
         <?php echo "Asu" ?>
         <?php $index = 0; ?> <!-- インデックスをリセット -->
@@ -123,7 +176,7 @@ foreach ($names as $name) {
     </div>
 
     <script>
-        // Initial color counts
+        // 初期の色の枚数
         let colorCounts = {
             red: <?php echo $colorDistribution['red']; ?>,
             blue: <?php echo $colorDistribution['blue']; ?>
@@ -138,12 +191,33 @@ foreach ($names as $name) {
             // 名前の色を変更して見えるように
             card.style.color = 'orange';
 
-            // Decrement the count and update the display
+            //めくったカードが黒だった場合
+            if(color == "black"){
+                showPopup(`めくってないチームの勝利です！`);
+            }
+
+            // 色の枚数を減らし、表示を更新
             if (colorCounts[color] !== undefined && colorCounts[color] > 0) {
                 colorCounts[color]--;
                 document.getElementById(`count-${color}`).innerText = colorCounts[color];
+
+                // 色の枚数が0になった時に勝敗を表示
+                if (colorCounts[color] === 0) {
+                    showPopup(`${color}チームの勝利です！`);
+                }
             }
+        }
+
+        function showPopup(message) {
+            document.getElementById('popup-message').innerText = message;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('popup').style.display = 'none';
+            location.replace("http://aso2201186.boy.jp/Anonymous/G1-2/G1-2.php");
         }
     </script>
 </body>
-</html>
