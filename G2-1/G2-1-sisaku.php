@@ -107,6 +107,25 @@ foreach ($names as $name) {
         <?php endfor; ?>
     </div>
 
+    <form action="G2-1-sisaku.php" method="post">
+        ヒントを入力：    
+        <input type="text" name="hint" required>
+
+        <select name="number" required>
+            <option value="0">-</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+        </select>
+        <button type="submit">送信</button>
+    </form>
+
     <div class="container" style="margin-top: 20px;"> <!-- グリッド間に余白を設ける -->
         <?php echo "Asu" ?>
         <?php $index = 0; ?> <!-- インデックスをリセット -->
@@ -121,6 +140,16 @@ foreach ($names as $name) {
             </div>
         <?php endfor; ?>
     </div>
+
+    <?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $hint = htmlspecialchars($_POST['hint'], ENT_QUOTES, 'UTF-8');
+    $number = $_POST['number'];
+
+    echo $hint . " " . $number;
+}
+?>
+
 
     <script>
         // Initial color counts
@@ -146,24 +175,3 @@ foreach ($names as $name) {
         }
     </script>
 </body>
-<body>
-    <form action="hint-output.php" method="post">
-        ヒントを入力：    
-        <input type="text" name="hint" required>
-
-        <select name="number" required>
-            <option value="0">-</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-        </select>
-        <button type="submit">送信</button>
-    </form>
-</body>
-</html>
