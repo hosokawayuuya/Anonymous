@@ -2,12 +2,19 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>ポップアップリセット承認</title>
+<title>リセット承認</title>
 <style>
     dialog {
         border: 1px solid #000; /* 境界線 */
         padding: 20px; /* パディング */
         width: 300px; /* 幅 */
+    }
+    .center-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center; /* テキストを中央揃え */
     }
 </style>
 </head>
@@ -16,11 +23,12 @@
 <button onclick="document.getElementById('myDialog').showModal();">リセット</button>
 
 <dialog id="myDialog">
+    <div class="center-content"></div>
     <p>本当にリセットしますか？</p>
     <form method="dialog">
-        <button type="submit" value="confirm">リセット承認</button>
+        <button type="submit" value="confirm">リセット</button>
+        <button type="button" onclick="document.getElementById('myDialog').close();">キャンセル</button>
     </form>
 </dialog>
-
 </body>
 </html>
