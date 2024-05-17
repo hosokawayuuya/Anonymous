@@ -175,6 +175,15 @@ foreach ($names as $name) {
         <?php endfor; ?>
     </div>
 
+    <?php
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $hint = htmlspecialchars($_POST['hint'], ENT_QUOTES, 'UTF-8');
+        $number = $_POST['number'];
+
+        echo $hint . " " . $number;
+        }
+    ?>
+
     <script>
         // 初期の色の枚数
         let colorCounts = {
