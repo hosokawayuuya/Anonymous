@@ -30,5 +30,27 @@
         <button type="button" onclick="document.getElementById('myDialog').close();">キャンセル</button>
     </form>
 </dialog>
+<script>
+    document.getElementById('resetForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetch('/reset-database', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('データベースがリセットされました。');
+            } else {
+                alert('データベースのリセットに失敗しました。');
+            }
+            document.getElementById('myDialog').close();
+        })
+        .catch(error => {
+            console.error('エラー:', error);
+            alert('エラーが発生しました。');
+            document.getElementById('myDialog').close();
+        });
+    });
+</script>
 </body>
 </html>
