@@ -61,7 +61,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            border-radius: 10px; /* 追加 */
+            border-radius: 10px !important; /* 追加 */
         }
 
         .icon-button:hover {
@@ -81,6 +81,13 @@
             border-top: 5px solid transparent;
             border-bottom: 5px solid transparent;
         }
+        /* 追加 */
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +101,8 @@
         <button id="nextButton" class="icon-button">
             <div class="next-icon"></div>
         </button>
+        <!-- 追加 -->
+        <span class="close-button">×</span>
     </div>
 </div>
 
@@ -104,6 +113,8 @@
         <button id="backButton" class="icon-button">
             <div class="back-icon"></div>
         </button>
+        <!-- 追加 -->
+        <span class="close-button">×</span>
     </div>
 </div>
 
@@ -129,6 +140,16 @@
     document.getElementById('backButton').addEventListener('click', function() {
         document.getElementById('skillPopup').style.display = 'none';
         document.getElementById('popup').style.display = 'block';
+    });
+
+    // 追加：closeボタンのクリックイベント
+    var closeButtons = document.querySelectorAll('.close-button');
+    closeButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('skillPopup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        });
     });
 </script>
 
