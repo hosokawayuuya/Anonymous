@@ -40,7 +40,9 @@ try {
     }
 
     // データベース接続を閉じる
+    $num = intval($sheet);
     $con = null;
+    
 } catch (PDOException $e) {
     echo "エラー: " . $e->getMessage();
 }
