@@ -39,8 +39,9 @@ try {
         echo "フォームデータが送信されていません。";
     }
 
-    // データベース接続を閉じる
-    $num = intval($sheet);
+   
+    $num = intval($sheet) + 1;
+     // データベース接続を閉じる
     $con = null;
     
 } catch (PDOException $e) {
