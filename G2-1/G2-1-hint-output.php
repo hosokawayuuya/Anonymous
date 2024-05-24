@@ -25,13 +25,16 @@ try {
         if (count($all_results) > 0) {
             // 出力データの表示
             echo "<h3>ログ:</h3>";
+            echo "<div style='display: table;'>";
             foreach ($all_results as $key => $row) {
-                // ユーザーネームを赤と青で交互に塗り分けて表示
                 $username_color = ($key % 2 == 0) ? 'red' : 'blue';
-                echo "<span style='color: $username_color'>" . htmlspecialchars($row["user_ID"] ?? '') . "</span> ";
-                echo "ヒント " . htmlspecialchars($row["hint"] ?? '') . " ";
-                echo "枚数: " . htmlspecialchars($row["sheet"] ?? '') . "<br>";
+                echo "<div style='display: table-row;'>";
+                echo "<div style='display: table-cell; width: 100px; color: $username_color;'>" . htmlspecialchars($row["user_ID"] ?? '') . "</div>";
+                echo "<div style='display: table-cell; width: 200px;'>ヒント: " . htmlspecialchars($row["hint"] ?? '') . "</div>";
+                echo "<div style='display: table-cell; width: 100px;'>枚数: " . htmlspecialchars($row["sheet"] ?? '') . "</div>";
+                echo "</div>";
             }
+            echo "</div>";
         } else {
             echo "データがありません。";
         }
@@ -39,11 +42,10 @@ try {
         echo "フォームデータが送信されていません。";
     }
 
-   
     $num = intval($sheet) + 1;
-     // データベース接続を閉じる
+    // データベース接続を閉じる
     $con = null;
-    
+
 } catch (PDOException $e) {
     echo "エラー: " . $e->getMessage();
 }
