@@ -36,7 +36,7 @@ function resetBoard($pdo) {
     // カードをボードに挿入
     foreach ($names as $index => $name) {
         $color = $colors[$index];
-        $sql = $pdo->prepare('INSERT INTO BoardOpe (board_ID, state_ID, card_name, color) VALUES (?, ?, ?, ?)');
+        $sql = $pdo->prepare('INSERT INTO Board (board_ID, state_ID, card_name, color) VALUES (?, ?, ?, ?)');
         $sql->execute([$index + 1, 2, $name, $color]); // 初期状態は裏 (state_ID = 2) でカードを挿入
     }
 }

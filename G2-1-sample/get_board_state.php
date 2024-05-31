@@ -5,7 +5,7 @@ $pdo = new PDO($connect, USER, PASS);
 
 $roomId = $_GET['room_id'];
 
-$sql = "SELECT * FROM BoardOpe WHERE room_ID = ?";
+$sql = "SELECT * FROM Board WHERE room_ID = ?";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$roomId]);
 $boardState = $stmt->fetchAll(PDO::FETCH_ASSOC);

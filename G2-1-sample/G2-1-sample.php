@@ -19,7 +19,7 @@ if (!$gameState) {
 }
 
 // ボードの状態を初期化（もし未初期化の場合）
-$sql = "SELECT * FROM BoardOpe WHERE room_ID = ?";
+$sql = "SELECT * FROM Board WHERE room_ID = ?";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$roomId]);
 $boardExists = $stmt->rowCount() > 0; // ボードが存在するかどうかを確認
@@ -54,7 +54,7 @@ function resetBoard($pdo, $roomId) {
     // カードをボードに挿入
     foreach ($names as $index => $name) {
         $color = $colors[$index];
-        $sql = $pdo->prepare('INSERT INTO BoardOpe (board_ID, state_ID, card_name, color, room_ID) VALUES (?, ?, ?, ?, ?)');
+        $sql = $pdo->prepare('INSERT INTO Board (board_ID, state_ID, card_name, color, room_ID) VALUES (?, ?, ?, ?, ?)');
         $sql->execute([$index + 1, 2, $name, $color, $roomId]); // 初期状態は裏 (state_ID = 2) でカードを挿入
     }
 }
@@ -66,18 +66,26 @@ $stmt->execute([$roomId]);
 $gameState = $stmt->fetch(PDO::FETCH_ASSOC); // 再度ゲームステートを取得
 
 // ボードの状態を取得
-$sql = "SELECT * FROM BoardOpe WHERE room_ID = ?";
+$sql = "SELECT * FROM Board WHERE room_ID = ?";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$roomId]);
 $cards = $stmt->fetchAll(PDO::FETCH_ASSOC); // ボードの全カードを取得
 
+// 色の配分を再取得
 $colorDistribution = [
-    'red' => 9,
-    'blue' => 8,
-    'black' => 1,
-    'white' => 7
+    'red' => 0,
+    'blue' => 0,
+    'black' => 0,
+    'white' => 0
 ];
+$sql = "SELECT color, COUNT(*) as count FROM Board WHERE room_ID = ? AND state_ID = 2 GROUP BY color";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$roomId]);
+$remainingColors = $stmt->fetchAll(PDO::FETCH_ASSOC); // 裏面のカードの色ごとのカウントを取得
 
+foreach ($remainingColors as $color) {
+    $colorDistribution[$color['color']] = $color['count']; // 各色の残り枚数を設定
+}
 ?>
 
 <!DOCTYPE html>
@@ -305,11 +313,23 @@ $colorDistribution = [
     function checkForWin() {
         if (colorCounts.red === 0) {
             showPopup("赤チームの勝利です！");
+            resetGameState(); // 勝利後にゲームステートをリセット
             startNewGame();
         } else if (colorCounts.blue === 0) {
             showPopup("青チームの勝利です！");
+            resetGameState(); // 勝利後にゲームステートをリセット
             startNewGame();
         }
+    }
+
+    function resetGameState() {
+        fetch('reset-game-state.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ room_id: roomId })
+        });
     }
 
     function startNewGame() {
