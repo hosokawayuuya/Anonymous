@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="css/side.css">
+<link rel="stylesheet" href="../css/g2-1.css">
 <?php
 require '../db-connect.php';
 
@@ -5,13 +7,13 @@ require '../db-connect.php';
 $pdo = connectDB();
 
 // ゲームステートを初期化（もし未初期化の場合）
-$sql = "SELECT * FROM GameState WHERE game_id = 1";
+$sql = "SELECT * FROM GameState WHERE room_ID = 1";
 $stmt = $pdo->query($sql);
 $gameState = $stmt->fetch(PDO::FETCH_ASSOC); // 現在のゲームステートを取得
 
 if (!$gameState) {
     // 初期ゲームステートを挿入
-    $sql = "INSERT INTO GameState (game_id, current_turn, current_role, hint_text, hint_count) VALUES (1, 'red', 'Ope', '', 0)";
+    $sql = "INSERT INTO GameState (room_ID, current_turn, current_role, hint_text, hint_count) VALUES (1, 'red', 'Ope', '', 0)";
     $pdo->exec($sql); // 初期のゲームステートをデータベースに挿入
 }
 
@@ -67,7 +69,7 @@ if (!$boardExists) {
 }
 
 // 現在のゲームステートを取得
-$sql = "SELECT * FROM GameState WHERE game_id = 1";
+$sql = "SELECT * FROM GameState WHERE room_ID = 1";
 $stmt = $pdo->query($sql);
 $gameState = $stmt->fetch(PDO::FETCH_ASSOC); // 再度ゲームステートを取得
 
@@ -84,74 +86,7 @@ $cards = $stmt->fetchAll(PDO::FETCH_ASSOC); // ボードの全カードを取得
     <link href="style.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
-        .card {
-            width: 100px;
-            height: 100px;
-            display: inline-block;
-            margin: 5px;
-            text-align: center;
-            vertical-align: middle;
-            line-height: 100px;
-            color: orange;
-            background-color: gray; /* 初期背景色 */
-            font-weight: bold;
-            border: 2px solid black; /* 枠線 */
-            cursor: pointer;
-        }
-
-        .row {
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            width: 560px; /* (100px * 5) + (10px * 5) margin */
-            margin: 0 auto;
-        }
-
-        .counts {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 10px;
-        }
-
-        .hint-input {
-            display: none;
-            margin: 20px 0;
-        }
-
-        /* ポップアップのスタイル */
-        .popup {
-            display: none; /* 初期状態では非表示 */
-            position: fixed;
-            z-index: 1000;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            padding: 20px;
-            background: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-
-        .popup h2 {
-            margin-top: 0;
-        }
-
-        .popup button {
-            margin-top: 20px;
-        }
-
-        .overlay {
-            display: none; /* 初期状態では非表示 */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
+        
     </style>
 </head>
 <body>
