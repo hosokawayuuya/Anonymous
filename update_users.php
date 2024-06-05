@@ -7,10 +7,16 @@ $role_id = $_POST['role_id'] ?? '';
 $team_id = $_POST['team_id'] ?? '';
 $nickname = $_SESSION['nickname'] ?? '';
 
+if (empty($room_id) || empty($role_id) || empty($team_id) || empty($nickname)) {
+    echo '必要な情報が不足しています。';
+    exit();
+}
+
 try {
     $pdo = connectDB();
     $pdo->beginTransaction();
 
+    // チームと役割が既に選択されているかを確認
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM User WHERE room_ID = ? AND team_ID = ? AND role_ID = ?");
     $stmt->execute([$room_id, $team_id, $role_id]);
     $count = $stmt->fetchColumn();
@@ -25,6 +31,6 @@ try {
     }
 } catch (PDOException $e) {
     $pdo->rollBack();
-    echo 'エラー: ' . $e->getMessage();
+    echo 'データベース接続エラー: ' . $e->getMessage();
 }
 ?>
