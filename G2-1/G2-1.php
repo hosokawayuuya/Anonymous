@@ -102,20 +102,6 @@ foreach ($remainingColors as $color) {
     <div>青の残り枚数: <span id="count-blue"><?php echo $colorDistribution['blue']; ?></span></div>
 </div>
 
-<div class="container">
-    <div class="hint-input" id="hint-input">
-        <input type="text" id="hint-text" placeholder="ヒントを入力">
-        <input type="number" id="hint-count" min="1" max="10" placeholder="枚数">
-        <button onclick="submitHint()">完了</button>
-    </div>
-    <div class="end-turn" id="end-turn">
-        <button onclick="endTurn()">推測終了</button>
-    </div>
-    <div id="turn-info">現在のターン: <span id="current-turn"><?php echo $gameState['current_turn']; ?></span> チームの <span id="current-role"><?php echo $gameState['current_role']; ?></span></div>
-    <div id="hint-display" style="display:none;">
-        ヒント: <span id="display-hint-text"></span> | 枚数: <span id="display-hint-count"></span>
-    </div>
-</div>
 
 <div class="container" style="margin-top: 20px;"> <!-- グリッド間に余白を追加 -->
     <?php $index = 0; ?>
@@ -131,11 +117,28 @@ foreach ($remainingColors as $color) {
     <?php endfor; ?>
 </div>
 
+<div class="container">
+    <div class="hint-input" id="hint-input">
+        <input type="text" id="hint-text" placeholder="ヒントを入力">
+        <input type="number" id="hint-count" min="1" max="10" placeholder="枚数">
+        <button onclick="submitHint()">完了</button>
+    </div>
+    <div class="end-turn" id="end-turn" style="display:none;">
+        <button onclick="endTurn()">推測終了</button>
+    </div>
+
+    <div id="turn-info">現在のターン: <span id="current-turn"><?php echo $gameState['current_turn']; ?></span> チームの <span id="current-role"><?php echo $gameState['current_role']; ?></span></div>
+    <div id="hint-display" style="display:none;">
+        ヒント: <span id="display-hint-text"></span> | 枚数: <span id="display-hint-count"></span>
+    </div>
+</div>
+
 <!-- ポップアップ -->
 <div class="overlay" id="overlay"></div>
 <div class="popup" id="popup">
     <h2 id="popup-message"></h2>
-    <button onclick="closePopup()">閉じる</button>
+    <button onclick="startNewGame()">新しいゲームを開始する</button>
+    <button onclick="goBack()">戻る</button>
 </div>
 
 <script>
@@ -195,11 +198,21 @@ foreach ($remainingColors as $color) {
                 const cardElement = document.getElementById('card-' + card.board_ID);
                 cardElement.setAttribute('data-flipped', card.state_ID == 1 ? '1' : '0');
                 if (card.state_ID == 1) {
-                    cardElement.style.backgroundColor = adjustColor(card.color, 0.7); // 色を少し薄く
-                    cardElement.style.color = 'orange';
-                    cardElement.disabled = true;
+                    const color = card.getAttribute('data-color'); // カードの色を取得
+                    const colorImageMap = {
+                        'red': 'red.webp',
+                        'blue': 'blue.webp',
+                        'black': 'black.webp',
+                        'white': 'white.webp'
+                    };
+
+                    const imgSrc = `../img/${colorImageMap[color]}`;
+                    cardElement.style.backgroundImage = `url('${imgSrc}')`; // 背景画像を設定
+                    cardElement.style.backgroundSize = 'cover'; // 背景画像のサイズを設定
+                    cardElement.style.color = 'orange'; // テキストの色を変更
+                    cardElement.disabled = true; // カードを無効化
                 } else if (currentRole === 'Ope') {
-                    cardElement.style.backgroundColor = card.color;
+                    cardElement.style.backgroundColor = card.getAttribute('data-color');
                 } else {
                     cardElement.style.backgroundColor = 'gray';
                 }
@@ -214,13 +227,23 @@ foreach ($remainingColors as $color) {
         }
 
         const color = card.getAttribute('data-color'); // カードの色を取得
-        card.style.backgroundColor = color; // カードの背景色を変更
+        const colorImageMap = {
+            'red': 'red.webp',
+            'blue': 'blue.webp',
+            'black': 'black.webp',
+            'white': 'white.webp'
+        };
+
+        const imgSrc = `../img/${colorImageMap[color]}`;
+        card.style.backgroundImage = `url('${imgSrc}')`; // 背景画像を設定
+        card.style.backgroundSize = 'cover'; // 背景画像のサイズを設定
         card.style.color = 'orange'; // テキストの色を変更
         card.disabled = true; // カードを無効化
+        card.innerText = ''; // テキストを空にする
 
         if (color == "black") {
             showPopup(`めくってないチームの勝利です！`);
-            startNewGame();
+            resetGameState(); // 勝利後にゲームステートをリセット
             return;
         }
 
@@ -307,6 +330,9 @@ foreach ($remainingColors as $color) {
         if (currentRole === 'Asu') {
             document.getElementById('display-hint-text').innerText = hintText;
             document.getElementById('display-hint-count').innerText = hintCount;
+            document.getElementById('end-turn').style.display = 'block'; // Asuのターンのみ表示
+        } else {
+            document.getElementById('end-turn').style.display = 'none'; // Opeのターンでは非表示
         }
     }
 
@@ -314,11 +340,9 @@ foreach ($remainingColors as $color) {
         if (colorCounts.red === 0) {
             showPopup("赤チームの勝利です！");
             resetGameState(); // 勝利後にゲームステートをリセット
-            startNewGame();
         } else if (colorCounts.blue === 0) {
             showPopup("青チームの勝利です！");
             resetGameState(); // 勝利後にゲームステートをリセット
-            startNewGame();
         }
     }
 
@@ -344,6 +368,10 @@ foreach ($remainingColors as $color) {
         });
     }
 
+    function goBack() {
+        window.location.href = '../G1-2/G1-2.php';
+    }
+
     function adjustColor(color, factor) {
         const colorMap = {
             "red": "#FF9999",
@@ -363,7 +391,6 @@ foreach ($remainingColors as $color) {
     function closePopup() {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('popup').style.display = 'none';
-        location.reload();
     }
 
     function endTurn() {
