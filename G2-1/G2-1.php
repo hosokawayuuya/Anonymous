@@ -1,9 +1,15 @@
-<?php require '../db-connect.php'; ?>
-
 <?php
-$pdo = new PDO($connect, USER, PASS); // データベース接続を確立
+session_start();
+require '../db-connect.php';
 
-$roomId = $_GET['room_id']; // ルームIDを取得
+// データベース接続を確立
+try {
+    $pdo = connectDB();
+} catch (PDOException $e) {
+    die("データベース接続エラー: " . $e->getMessage());
+}
+
+$roomId = $_GET['room'] ?? ''; // ルームIDを取得
 
 // ゲームステートを初期化（もし未初期化の場合）
 $sql = "SELECT * FROM GameState WHERE room_ID = ?";
@@ -107,7 +113,7 @@ foreach ($remainingColors as $color) {
     <?php $index = 0; ?>
     <?php for ($row = 0; $row < 5; $row++): ?>
         <div class="row">
-            <?php for ($col = 0; $col < 5; $col++): ?>
+            <?php for ($col = 0; $col++ < 5; ): ?>
                 <?php $card = $cards[$index++]; ?>
                 <button class="card" id="card-<?= $card['board_ID']; ?>" data-id="<?= $card['board_ID']; ?>" data-color="<?= $card['color']; ?>" data-name="<?= $card['card_name']; ?>" data-flipped="<?= $card['state_ID'] == 1 ? '1' : '0'; ?>" onclick="flipCard(this)">
                     <?= $card['card_name']; ?>
@@ -142,7 +148,7 @@ foreach ($remainingColors as $color) {
 </div>
 
 <script>
-    const roomId = <?php echo $roomId; ?>; // ルームIDを取得
+    const roomId = <?php echo json_encode($roomId); ?>; // ルームIDを取得
 
     // 初期の色の枚数を設定
     let colorCounts = {
