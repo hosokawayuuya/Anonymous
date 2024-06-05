@@ -44,7 +44,6 @@ try {
 
 $teamNames = [1 => '赤チーム', 2 => '青チーム'];
 $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
-$allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null && $u['role_ID'] !== null)) === 4;
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -53,38 +52,87 @@ $allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="../style.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <link href="../bootstrap.min.css" rel="stylesheet">
     <title>役割選択</title>
+    <style>
+        .disabled-button {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             const roomId = "<?php echo htmlspecialchars($room_id); ?>";
 
-            function checkGameStart() {
-                $.get('../check_game_start.php', {room_id: roomId}, function(data) {
-                    if (data === 'started') {
-                        window.location.href = '../G2-1/G2-1-sample.php?room=' + roomId;
-                    }
+            function updateUsers() {
+                $.get('get_users.php', {room_id: roomId}, function(data) {
+                    $('#userList').html(data);
+                    updateRoleButtons(); // ボタンの状態も更新
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
                 });
             }
 
-            setInterval(function() {
+            function updateUserCount() {
                 $.get('../count_users.php', {room_id: roomId}, function(data) {
                     $('#userCount').text(data);
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
                 });
-                $.get('../get_users.php', {room_id: roomId}, function(data) {
-                    $('#userList').html(data);
+            }
+
+            function updateRoleButtons() {
+                $.get('get_role_status.php', {room_id: roomId}, function(data) {
+                    const result = JSON.parse(data);
+                    const roles = result.roles;
+                    const allRolesSelected = result.allRolesSelected;
+
+                    $('.role-button').each(function() {
+                        const roleId = $(this).data('role-id');
+                        const teamId = $(this).data('team-id');
+                        const isSelected = roles.some(role => role.team_ID == teamId && role.role_ID == roleId);
+                        if (isSelected) {
+                            $(this).addClass('disabled-button').prop('disabled', true);
+                        } else {
+                            $(this).removeClass('disabled-button').prop('disabled', false);
+                        }
+                    });
+
+                    if (allRolesSelected) {
+                        $('#startGame').show();
+                    } else {
+                        $('#startGame').hide();
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
                 });
+            }
+
+            function checkGameStart() {
+                $.get('../check_game_start.php', {room_id: roomId}, function(data) {
+                    if (data === 'started') {
+                        window.location.href = '../G2-1/G2-1.php?room=' + roomId;
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
+                });
+            }
+
+            function refreshData() {
+                updateUsers();
+                updateUserCount();
+                updateRoleButtons();
                 checkGameStart();
-            }, 1000);
+            }
+
+            setInterval(refreshData, 1000); // 1秒ごとにデータを更新
 
             $('.role-button').click(function() {
                 const roleId = $(this).data('role-id');
                 const teamId = $(this).data('team-id');
                 $.post('../update_users.php', {room_id: roomId, role_id: roleId, team_id: teamId}, function(response) {
                     alert(response);
-                }).done(function() {
-                    location.reload(); // 役割が選択されたらページをリロード
+                    refreshData();
                 });
             });
 
@@ -93,11 +141,13 @@ $allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null 
                     checkGameStart();
                 });
             });
+
+            $('#startGame').hide(); // 初期状態で隠しておく
         });
     </script>
 </head>
 <body>
-    <h1>リアルタイムユーザー数: <span id="userCount"><?php echo $userCount; ?></span></h1>
+    <h1>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
     <div id="userList">
         <?php
         foreach ($users as $user) {
@@ -116,9 +166,7 @@ $allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null 
             <input type="text" id="nickname" name="nickname" required>
             <button type="submit">参加</button>
         </form>
-    <?php } else {
-        echo "<p>参加者: $nickname</p>";
-    } ?>
+    <?php } ?>
     <div>
         <?php
         foreach ([1 => '赤チームオペレーター', 2 => '赤チームアストロノーツ', 3 => '青チームオペレーター', 4 => '青チームアストロノーツ'] as $index => $label) {
@@ -128,7 +176,7 @@ $allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null 
             foreach ($users as $user) {
                 if ($user['team_ID'] == $teamId && $user['role_ID'] == $roleId) {
                     $disabled = true;
-                    echo "<button class='role-button' data-team-id='$teamId' data-role-id='$roleId' disabled>$label - {$user['user_name']}</button><br>";
+                    echo "<button class='role-button disabled-button' data-team-id='$teamId' data-role-id='$roleId' disabled>$label - {$user['user_name']}</button><br>";
                 }
             }
             if (!$disabled) {
@@ -137,8 +185,6 @@ $allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null 
         }
         ?>
     </div>
-    <?php if ($is_host && $allRolesSelected) { ?>
-        <button id="startGame">ゲームスタート</button>
-    <?php } ?>
+    <button id="startGame" style="display: none;">ゲームスタート</button>
 </body>
 </html>
