@@ -1,3 +1,32 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px; /* 調整した最大幅 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#game-board {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+}
+
 .card {
     width: 100px;
     height: 100px;
@@ -11,36 +40,26 @@
     font-weight: bold;
     border: 2px solid black; /* 枠線 */
     cursor: pointer;
+    background-size: cover; /* 背景画像のサイズをカバーに設定 */
 }
 
-.row {
+.hint-input, .end-turn, #hint-display {
+    margin-top: 20px;
     display: flex;
-    justify-content: center;
-}
-.container {
-    width: 560px; /* (100px * 5) + (10px * 5) margin */
-    margin: 0 auto;
+    flex-direction: column;
+    align-items: center;
 }
 
 .counts {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 1.2em;
 }
 
-.hint-input {
-    display: none;
-    margin: 20px 0;
-}
-
-.end-turn {
-    display: none;
-    margin: 20px 0;
-}
-
-/* ポップアップのスタイル */
 .popup {
-    display: none; /* 初期状態では非表示 */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 50%;
@@ -53,16 +72,12 @@
     text-align: center;
 }
 
-.popup h2 {
-    margin-top: 0;
-}
-
 .popup button {
     margin-top: 20px;
 }
 
 .overlay {
-    display: none; /* 初期状態では非表示 */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;

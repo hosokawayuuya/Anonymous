@@ -4,8 +4,6 @@
     const USER = 'LAA1517459';
     const PASS = 'Pass0515';
 
-    $connect = 'mysql:host='. SERVER . ';dbname='. DBNAME . ';charset=utf8';
-
 function connectDB() {
     $dsn = 'mysql:host=' . SERVER . ';dbname=' . DBNAME . ';charset=utf8';
     return new PDO($dsn, USER, PASS, [
