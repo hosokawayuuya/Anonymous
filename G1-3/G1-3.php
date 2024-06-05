@@ -7,7 +7,7 @@ $nickname = $_SESSION['nickname'] ?? '';
 $is_host = $_SESSION['is_host'] ?? false;
 
 if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
-    $nickname = $_POST['nickname'];
+    $nickname = htmlspecialchars($_POST['nickname'], ENT_QUOTES, 'UTF-8');
 
     try {
         $pdo = connectDB();
@@ -138,7 +138,12 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 
             $('#startGame').click(function() {
                 $.post('../start_game.php', {room_id: roomId}, function(response) {
-                    checkGameStart();
+                    const data = JSON.parse(response);
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert(data.message);
+                    }
                 });
             });
 
