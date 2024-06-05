@@ -40,7 +40,7 @@
 </head>
 <body>
 
-<button onclick="togglePopup()">player</button>
+<button onclick="togglePopup()">URL</button>
 
 <div class="popup" id="popup">
   <div>
