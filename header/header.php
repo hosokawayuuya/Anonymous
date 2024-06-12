@@ -7,7 +7,7 @@
     <title>Anonymous</title>
 </head>
 <header>
-        <h1>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
+<h1>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
         <nav>
                 <button onclick="location.href='kopyURL.php'">URL</button>
                 <button onclick="location.href='rule.php'">ルール</button>
