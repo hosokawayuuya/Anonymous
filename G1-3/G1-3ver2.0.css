@@ -1,0 +1,112 @@
+/* G1-3ver2.0.css */
+.Name {
+   position: fixed;
+   left: 50%;
+   bottom: 0;
+   transform: translateX(-50%);
+   width: 100%; /* 幅を100%に設定 */
+   text-align: center;
+}
+
+.namebox {
+   text-align: center;
+   display: inline-block; /* インラインブロック要素に変更 */
+   background-color: #f0f0f0;
+   padding: 10px;
+   border-radius: 5px;
+   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+body {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100vh;
+   background-color: #f5f5f5;
+   font-family: Arial, sans-serif;
+}
+
+.container {
+   display: flex;
+   justify-content: space-between; /* 赤、ルール、青の間に均等なスペースを配置 */
+   width: 80%;
+}
+
+
+
+.team-box {
+   width: 30%;
+   padding: 20px;
+   border-radius: 10px;
+   color: white;
+}
+
+.red-team {
+   background-color: #ff4c4c;
+}
+
+.blue-team {
+   background-color: #4c4cff;
+}
+
+.photo-container {
+   position: relative;
+   text-align: center;
+}
+
+.team-photo {
+   width: 100%;
+   border-radius: 10px;
+}
+
+.number {
+   position: absolute;
+   top: 10px;
+   right: 10px;
+   background-color: rgba(0, 0, 0, 0.5);
+   border-radius: 50%;
+   width: 30px;
+   height: 30px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   color: white;
+   font-size: 1.2em;
+}
+
+.team-info {
+   margin-top: 20px;
+   text-align: center;
+}
+
+.info-box {
+   width: 40%;
+   padding: 20px;
+   background-color: white;
+   border-radius: 10px;
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+   margin-left: 20px;
+}
+
+.info-box h1 {
+   margin-bottom: 20px;
+}
+
+.role-buttons {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+   margin-top: 20px;
+}
+
+.role-button {
+   padding: 10px;
+   border: 1px solid #ccc;
+   border-radius: 5px;
+   background-color: #f0f0f0;
+   cursor: pointer;
+}
+
+.role-button:hover {
+   background-color: #e0e0e0;
+}
