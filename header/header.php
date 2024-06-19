@@ -7,13 +7,11 @@
     <title>Anonymous</title>
 </head>
 <header>
-        <h1>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
+<h1>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
         <nav>
-            <ul class="nav-buttons">
-                <li><button onclick="location.href='kopyURL.php'">URL</button></li>
-                <li><button onclick="location.href='rule.php'">ルール</button></li>
-                <li><button onclick="location.href='reset2.php'">リセット</button></li>
-            </ul>
+                <button onclick="location.href='kopyURL.php'">URL</button>
+                <button onclick="location.href='rule.php'">ルール</button>
+                <button onclick="location.href='reset2.php'">リセット</button>       
         </nav>
     </header>
 <body>
