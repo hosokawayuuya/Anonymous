@@ -30,10 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
         $stmt->execute();
         $room_id = $pdo->lastInsertId();
 
-        // RoomのURLを更新
+        // RoomのURLを更新し、ランダムなカード名をroom_keyに登録
+        $words = getRandomWords($pdo);
         $url = createDynamicUrl($pdo);
-        $stmt = $pdo->prepare("UPDATE Room SET URL = ? WHERE room_ID = ?");
-        $stmt->execute([$url, $room_id]);
+        $room_key = implode('-', $words);
+        $stmt = $pdo->prepare("UPDATE Room SET URL = ?, room_key = ? WHERE room_ID = ?");
+        $stmt->execute([$url, $room_key, $room_id]);
 
         // Userを作成 (team_IDとrole_IDをNULLで設定)
         $stmt = $pdo->prepare("INSERT INTO User (room_ID, user_name, team_ID, role_ID) VALUES (?, ?, NULL, NULL)");
@@ -42,10 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
         $_SESSION['nickname'] = $nickname;
         $_SESSION['is_host'] = true;
         $_SESSION['room_id'] = $room_id;
+        $_SESSION['room_key'] = $room_key;
 
         $pdo->commit();
 
-        header("Location: ../G1-3/G1-3.php?room=$room_id");
+        // room_idとroom_keyをURLに含めてリダイレクト
+        header("Location: ../G1-3/G1-3.php?room_id=$room_id&room_key=$room_key");
         exit();
     } catch (PDOException $e) {
         $pdo->rollBack();

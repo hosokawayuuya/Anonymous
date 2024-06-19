@@ -2,21 +2,50 @@
 session_start();
 require '../db-connect.php';
 
-$room_id = $_GET['room'] ?? '';
+// URLからroom_keyとroom_idを取得
+$room_key = $_GET['room_key'] ?? '';
+$room_id = $_GET['room_id'] ?? '';
 $nickname = $_SESSION['nickname'] ?? '';
 $is_host = $_SESSION['is_host'] ?? false;
+$users = [];
+$userCount = 0;
+$roomStatus = '';
+
+if (empty($room_id) && !empty($room_key)) {
+    // room_keyを使ってroom_IDを取得
+    try {
+        $pdo = connectDB();
+        $stmt = $pdo->prepare("SELECT room_ID FROM Room WHERE room_key = ?");
+        $stmt->execute([$room_key]);
+        $room_id = $stmt->fetchColumn();
+
+        if (!$room_id) {
+            throw new Exception('無効なルームキーです。');
+        }
+    } catch (Exception $e) {
+        echo 'エラー: ' . $e->getMessage();
+        exit();
+    } catch (PDOException $e) {
+        echo 'データベース接続エラー: ' . $e->getMessage();
+        exit();
+    }
+}
 
 if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
     $nickname = htmlspecialchars($_POST['nickname'], ENT_QUOTES, 'UTF-8');
 
     try {
         $pdo = connectDB();
+
         $stmt = $pdo->prepare("INSERT INTO User (room_ID, user_name, team_ID, role_ID) VALUES (?, ?, NULL, NULL)");
         $stmt->execute([$room_id, $nickname]);
 
         $_SESSION['nickname'] = $nickname;
 
-        header("Location: G1-3.php?room=$room_id");
+        header("Location: G1-3.php?room_key=$room_key&room_id=$room_id");
+        exit();
+    } catch (Exception $e) {
+        echo 'エラー: ' . $e->getMessage();
         exit();
     } catch (PDOException $e) {
         echo 'データベース接続エラー: ' . $e->getMessage();
@@ -26,6 +55,8 @@ if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !e
 
 try {
     $pdo = connectDB();
+
+    // room_idを使ってユーザーや部屋の情報を取得
     $stmt = $pdo->prepare("SELECT user_name, team_ID, role_ID FROM User WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -37,6 +68,9 @@ try {
     $stmt = $pdo->prepare("SELECT status FROM Room WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $roomStatus = $stmt->fetchColumn();
+} catch (Exception $e) {
+    echo 'エラー: ' . $e->getMessage();
+    exit();
 } catch (PDOException $e) {
     echo 'データベース接続エラー: ' . $e->getMessage();
     exit();
@@ -44,7 +78,9 @@ try {
 
 $teamNames = [1 => '赤チーム', 2 => '青チーム'];
 $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
+$allRolesSelected = count(array_filter($users, fn($u) => $u['team_ID'] !== null && $u['role_ID'] !== null)) === 4;
 ?>
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -62,10 +98,11 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
+            const roomKey = "<?php echo htmlspecialchars($room_key); ?>";
             const roomId = "<?php echo htmlspecialchars($room_id); ?>";
 
             function updateUsers() {
-                $.get('get_users.php', {room_id: roomId}, function(data) {
+                $.get('get_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                     $('#userList').html(data);
                     updateRoleButtons(); // ボタンの状態も更新
                 }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -74,7 +111,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             }
 
             function updateUserCount() {
-                $.get('../count_users.php', {room_id: roomId}, function(data) {
+                $.get('../count_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                     $('#userCount').text(data);
                 }).fail(function(jqXHR, textStatus, errorThrown) {
                     console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
@@ -82,7 +119,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             }
 
             function updateRoleButtons() {
-                $.get('get_role_status.php', {room_id: roomId}, function(data) {
+                $.get('get_role_status.php', {room_key: roomKey, room_id: roomId}, function(data) {
                     const result = JSON.parse(data);
                     const roles = result.roles;
                     const allRolesSelected = result.allRolesSelected;
@@ -109,9 +146,9 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             }
 
             function checkGameStart() {
-                $.get('../check_game_start.php', {room_id: roomId}, function(data) {
+                $.get('../check_game_start.php', {room_key: roomKey, room_id: roomId}, function(data) {
                     if (data === 'started') {
-                        window.location.href = '../G2-1/G2-1.php?room=' + roomId;
+                        window.location.href = '../G2-1/G2-1.php?room_key=' + roomKey + '&room_id=' + roomId;
                     }
                 }).fail(function(jqXHR, textStatus, errorThrown) {
                     console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
@@ -130,14 +167,18 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             $('.role-button').click(function() {
                 const roleId = $(this).data('role-id');
                 const teamId = $(this).data('team-id');
-                $.post('../update_users.php', {room_id: roomId, role_id: roleId, team_id: teamId}, function(response) {
+                $.post('../update_users.php', {room_key: roomKey, room_id: roomId, role_id: roleId, team_id: teamId}, function(response) {
                     alert(response);
                     refreshData();
+                }).done(function() {
+                    // 役割が選択されたらセッションに保存
+                    <?php $_SESSION['role_ID'] = '<script>document.write(roleId)</script>'; ?>
+                    <?php $_SESSION['team_ID'] = '<script>document.write(teamId)</script>'; ?>
                 });
             });
 
             $('#startGame').click(function() {
-                $.post('../start_game.php', {room_id: roomId}, function(response) {
+                $.post('../start_game.php', {room_key: roomKey, room_id: roomId}, function(response) {
                     const data = JSON.parse(response);
                     if (data.status === 'success') {
                         window.location.href = data.redirect;
@@ -166,6 +207,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     </div>
     <?php if (!$is_host && empty($nickname)) { ?>
         <form method="post" action="">
+            <input type="hidden" name="room_key" value="<?php echo htmlspecialchars($room_key); ?>">
             <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room_id); ?>">
             <label for="nickname">ニックネーム:</label>
             <input type="text" id="nickname" name="nickname" required>
