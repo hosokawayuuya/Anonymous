@@ -2,6 +2,17 @@
 session_start();
 require '../db-connect.php';
 
+// 新しいルームに入る際にニックネームとホストフラグをリセットする
+if(isset($_SESSION['is_host'])){
+    if (isset($_SESSION['last_room_key'])!=$_GET['room_key']) {
+        unset($_SESSION['is_host']);
+        unset($_SESSION['nickname']);
+    }
+}else if(isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['room_key']){
+    unset($_SESSION['nickname']);
+}
+
+// URLからroom_keyとroom_idを取得
 $room_key = $_GET['room_key'] ?? '';
 $room_id = $_GET['room_id'] ?? '';
 $room_id = $_GET['room'] ?? '';
@@ -10,7 +21,7 @@ $is_host = $_SESSION['is_host'] ?? false;
 $users = [];
 $userCount = 0;
 $roomStatus = '';
-
+$_SESSION['last_room_key'] = $_GET['room_key'];
 
 if (empty($room_id) && !empty($room_key)) {
     // room_keyを使ってroom_IDを取得
@@ -42,7 +53,7 @@ if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !e
 
         $_SESSION['nickname'] = $nickname;
 
-        header("Location: G1-3.php?room=$room_id");
+        header("Location: G1-3.php?room_key=$room_key&room_id=$room_id");
         exit();
     } catch (PDOException $e) {
         echo 'データベース接続エラー: ' . $e->getMessage();
@@ -81,7 +92,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="css/G1-3ver2.0.css">
+    <link rel="stylesheet" href="G1-3ver2.0.css">
     <title>チームデザイン</title>
     <style>
     </style>
@@ -90,10 +101,11 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
+        const roomKey = "<?php echo htmlspecialchars($room_key); ?>";
         const roomId = "<?php echo htmlspecialchars($room_id); ?>";
 
         function updateUsers() {
-            $.get('get_users.php', {room_id: roomId}, function(data) {
+            $.get('get_users.php', {room_key: roomKey,room_id: roomId}, function(data) {
                 $('#userList').html(data);
                 updateRoleButtons();
             }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -102,7 +114,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         }
 
         function updateUserCount() {
-            $.get('../count_users.php', {room_id: roomId}, function(data) {
+            $.get('../count_users.php', {room_key: roomKey,room_id: roomId}, function(data) {
                 $('#userCount').text(data);
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
@@ -110,7 +122,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         }
 
         function updateRoleButtons() {
-            $.get('get_role_status.php', {room_id: roomId}, function(data) {
+            $.get('get_role_status.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 const result = JSON.parse(data);
                 const roles = result.roles;
                 const allRolesSelected = result.allRolesSelected;
@@ -137,7 +149,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         }
 
         function updateRoleUsers() {
-            $.get('get_role_users.php', {room_id: roomId}, function(data) {
+            $.get('get_role_users.php', {room_key : roomKey , room_id: roomId}, function(data) {
                 const roles = JSON.parse(data);
                 $('#operator-red').html('');
                 $('#astronaut-red').html('');
@@ -161,9 +173,9 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         }
 
         function checkGameStart() {
-            $.get('../check_game_start.php', {room_id: roomId}, function(data) {
+            $.get('../check_game_start.php', {room_key:roomKey,room_id: roomId}, function(data) {
                 if (data === 'started') {
-                    window.location.href = '../G2-1/G2-1.php?room=' + roomId;
+                    window.location.href = '../G2-1/G2-1.php?room_key=' + roomKey + '&room_id=' + roomId;
                 }
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
@@ -183,14 +195,14 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         $('.role-button').click(function() {
             const roleId = $(this).data('role-id');
             const teamId = $(this).data('team-id');
-            $.post('../update_users.php', {room_id: roomId, role_id: roleId, team_id: teamId}, function(response) {
+            $.post('../update_users.php', {room_key: roomKey , room_id: roomId, role_id: roleId, team_id: teamId}, function(response) {
                 alert(response);
                 refreshData();
             });
         });
 
         $('#startGame').click(function() {
-            $.post('../start_game.php', {room_id: roomId}, function(response) {
+            $.post('../start_game.php', {room_key: roomKey , room_id: roomId}, function(response) {
                 const data = JSON.parse(response);
                 if (data.status === 'success') {
                     window.location.href = data.redirect;
@@ -207,6 +219,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     <div class="namebox">
         <?php if (!$is_host && empty($nickname)) { ?>
             <form method="post" action="">
+            <input type="hidden" name="room_key" value="<?php echo htmlspecialchars($room_key); ?>">
                 <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room_id); ?>">
                 <label for="nickname">ニックネーム:</label>
                 <input type="text" id="nickname" name="nickname" required>
