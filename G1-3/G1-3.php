@@ -3,25 +3,21 @@ session_start();
 require '../db-connect.php';
 
 // 新しいルームに入る際にニックネームとホストフラグをリセットする
-if(isset($_SESSION['is_host'])){
-    if (isset($_SESSION['last_room_key'])!=$_GET['room_key']) {
-        unset($_SESSION['is_host']);
-        unset($_SESSION['nickname']);
-    }
-}else if(isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['room_key']){
+if (isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['room_key']) {
+    // ルームキーが変更された場合、ホストフラグとニックネームをリセット
+    unset($_SESSION['is_host']);
     unset($_SESSION['nickname']);
+    $_SESSION['last_room_key'] = $_GET['room_key'];
 }
 
 // URLからroom_keyとroom_idを取得
 $room_key = $_GET['room_key'] ?? '';
 $room_id = $_GET['room_id'] ?? '';
-$room_id = $_GET['room'] ?? '';
 $nickname = $_SESSION['nickname'] ?? '';
 $is_host = $_SESSION['is_host'] ?? false;
 $users = [];
 $userCount = 0;
 $roomStatus = '';
-$_SESSION['last_room_key'] = $_GET['room_key'];
 
 if (empty($room_id) && !empty($room_key)) {
     // room_keyを使ってroom_IDを取得
@@ -95,6 +91,10 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     <link rel="stylesheet" href="G1-3ver2.0.css">
     <title>チームデザイン</title>
     <style>
+        .disabled-button {
+            pointer-events: none;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -105,7 +105,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         const roomId = "<?php echo htmlspecialchars($room_id); ?>";
 
         function updateUsers() {
-            $.get('get_users.php', {room_key: roomKey,room_id: roomId}, function(data) {
+            $.get('get_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 $('#userList').html(data);
                 updateRoleButtons();
             }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -114,7 +114,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         }
 
         function updateUserCount() {
-            $.get('../count_users.php', {room_key: roomKey,room_id: roomId}, function(data) {
+            $.get('../count_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 $('#userCount').text(data);
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
@@ -266,7 +266,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         </div>
         <div class="team-info">
             <button class="role-button" data-team-id="2" data-role-id="1">オペレーター</button>
-            <div id="astronaut-blue"></div>
+            <div id="operator-blue"></div>
             <br>
             <button class="role-button" data-team-id="2" data-role-id="2">アストロノーツ</button>
             <div id="astronaut-blue"></div>

@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
         $_SESSION['is_host'] = true;
         $_SESSION['room_id'] = $room_id;
         $_SESSION['room_key'] = $room_key;
+        $_SESSION['last_room_key'] = $room_key;
 
         $pdo->commit();
 
