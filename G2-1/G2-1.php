@@ -2,406 +2,274 @@
 session_start();
 require '../db-connect.php';
 
-// データベース接続を確立
+$room_id = $_GET['room_id'] ?? '';
+$role_id = $_SESSION['role_id'] ?? '';
+$team_id = $_SESSION['team_id'] ?? '';
+
+if (empty($room_id) || empty($role_id) || empty($team_id)) {
+    echo 'Room ID, role ID, or team ID is missing';
+    exit();
+}
+
+$_SESSION['room_id'] = $room_id;
+
 try {
     $pdo = connectDB();
-} catch (PDOException $e) {
-    die("データベース接続エラー: " . $e->getMessage());
-}
+    $stmt = $pdo->prepare("SELECT * FROM Board WHERE room_ID = ?");
+    $stmt->execute([$room_id]);
+    $board = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$roomId = $_GET['room'] ?? ''; // ルームIDを取得
+    if (!$board) {
+        throw new Exception('Board data not found');
+    }
 
-// ゲームステートを初期化（もし未初期化の場合）
-$sql = "SELECT * FROM GameState WHERE room_ID = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$roomId]);
-$gameState = $stmt->fetch(PDO::FETCH_ASSOC); // 現在のゲームステートを取得
-
-if (!$gameState) {
-    // 初期ゲームステートを挿入
-    $sql = "INSERT INTO GameState (room_ID, current_turn, current_role, hint_text, hint_count) VALUES (?, 'red', 'Ope', '', 0)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$roomId]); // 初期のゲームステートをデータベースに挿入
-}
-
-// ボードの状態を初期化（もし未初期化の場合）
-$sql = "SELECT * FROM Board WHERE room_ID = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$roomId]);
-$boardExists = $stmt->rowCount() > 0; // ボードが存在するかどうかを確認
-
-if (!$boardExists) {
-    resetBoard($pdo, $roomId);
-}
-
-function resetBoard($pdo, $roomId) {
-    // 色の配分
-    $colorDistribution = [
-        'red' => 9,
-        'blue' => 8,
-        'black' => 1,
-        'white' => 7
+    $stmt = $pdo->prepare("SELECT color, COUNT(*) as count FROM Board WHERE room_ID = ? AND state_ID = 2 GROUP BY color");
+    $stmt->execute([$room_id]);
+    $color_counts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $counts = [
+        'red' => 0,
+        'blue' => 0,
+        'black' => 0,
+        'white' => 0
     ];
 
-    // ランダムにカード名を取得
-    $sql = "SELECT DISTINCT card_name FROM Card ORDER BY RAND() LIMIT 25";
-    $stmt = $pdo->query($sql);
-    $names = $stmt->fetchAll(PDO::FETCH_COLUMN); // 25枚のランダムなカード名を取得
-
-    // 色の配列を生成してシャッフル
-    $colors = [];
-    foreach ($colorDistribution as $color => $count) {
-        for ($i = 0; $i < $count; $i++) {
-            $colors[] = $color;
-        }
+    foreach ($color_counts as $count) {
+        $counts[$count['color']] = $count['count'];
     }
-    shuffle($colors); // 色の配列をシャッフル
 
-    // カードをボードに挿入
-    foreach ($names as $index => $name) {
-        $color = $colors[$index];
-        $sql = $pdo->prepare('INSERT INTO Board (board_ID, state_ID, card_name, color, room_ID) VALUES (?, ?, ?, ?, ?)');
-        $sql->execute([$index + 1, 2, $name, $color, $roomId]); // 初期状態は裏 (state_ID = 2) でカードを挿入
+    $red_count = $counts['red'];
+    $blue_count = $counts['blue'];
+
+    $is_astronaut = ($role_id == 2);
+
+    $stmt = $pdo->prepare("SELECT current_team, current_role, hint_text, hint_count FROM GameState WHERE room_ID = ?");
+    $stmt->execute([$room_id]);
+    $current_state = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$current_state) {
+        throw new Exception('Game state not found');
     }
+
+    $current_team = $current_state['current_team'];
+    $current_role = $current_state['current_role'];
+    $hint_text = $current_state['hint_text'];
+    $hint_count = $current_state['hint_count'];
+
+    $is_current_turn = ($current_team == $team_id && $current_role == $role_id);
+    $original_hint_count = $hint_count; // ここでオリジナルのヒント枚数を保持
+
+} catch (Exception $e) {
+    echo 'エラー: ' . $e->getMessage();
+    exit();
 }
 
-// 現在のゲームステートを取得
-$sql = "SELECT * FROM GameState WHERE room_ID = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$roomId]);
-$gameState = $stmt->fetch(PDO::FETCH_ASSOC); // 再度ゲームステートを取得
-
-// ボードの状態を取得
-$sql = "SELECT * FROM Board WHERE room_ID = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$roomId]);
-$cards = $stmt->fetchAll(PDO::FETCH_ASSOC); // ボードの全カードを取得
-
-// 色の配分を再取得
-$colorDistribution = [
-    'red' => 0,
-    'blue' => 0,
-    'black' => 0,
-    'white' => 0
-];
-$sql = "SELECT color, COUNT(*) as count FROM Board WHERE room_ID = ? AND state_ID = 2 GROUP BY color";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$roomId]);
-$remainingColors = $stmt->fetchAll(PDO::FETCH_ASSOC); // 裏面のカードの色ごとのカウントを取得
-
-foreach ($remainingColors as $color) {
-    $colorDistribution[$color['color']] = $color['count']; // 各色の残り枚数を設定
+function getRandomImage($color) {
+    $images = [
+        'red' => ['red.webp'],
+        'blue' => ['blue.webp'],
+        'black' => ['black.webp'],
+        'white' => ['white.webp']
+    ];
+    $imageList = $images[$color] ?? ['default.webp'];
+    return $imageList[array_rand($imageList)];
 }
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <title>匿名のゲーム</title>
-    <link href="style.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Anonymous Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="counts">
-    <div>赤の残り枚数: <span id="count-red"><?php echo $colorDistribution['red']; ?></span></div>
-    <div>青の残り枚数: <span id="count-blue"><?php echo $colorDistribution['blue']; ?></span></div>
-</div>
-
-
-<div class="container" style="margin-top: 20px;"> <!-- グリッド間に余白を追加 -->
-    <?php $index = 0; ?>
-    <?php for ($row = 0; $row < 5; $row++): ?>
-        <div class="row">
-            <?php for ($col = 0; $col++ < 5; ): ?>
-                <?php $card = $cards[$index++]; ?>
-                <button class="card" id="card-<?= $card['board_ID']; ?>" data-id="<?= $card['board_ID']; ?>" data-color="<?= $card['color']; ?>" data-name="<?= $card['card_name']; ?>" data-flipped="<?= $card['state_ID'] == 1 ? '1' : '0'; ?>" onclick="flipCard(this)">
-                    <?= $card['card_name']; ?>
-                </button>
-            <?php endfor; ?>
+    <div class="container">
+        <div class="counts">
+            <div>赤チーム: <span id="red-count"><?php echo $red_count; ?></span></div>
+            <?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?>
+            <div>青チーム: <span id="blue-count"><?php echo $blue_count; ?></span></div>
         </div>
-    <?php endfor; ?>
-</div>
+        <div id="game-board">
+            <?php
+            $cards_per_row = 5;
+            $total_cards = count($board);
 
-<div class="container">
-    <div class="hint-input" id="hint-input">
-        <input type="text" id="hint-text" placeholder="ヒントを入力">
-        <input type="number" id="hint-count" min="1" max="10" placeholder="枚数">
-        <button onclick="submitHint()">完了</button>
-    </div>
-    <div class="end-turn" id="end-turn" style="display:none;">
-        <button onclick="endTurn()">推測終了</button>
-    </div>
-
-    <div id="turn-info">現在のターン: <span id="current-turn"><?php echo $gameState['current_turn']; ?></span> チームの <span id="current-role"><?php echo $gameState['current_role']; ?></span></div>
-    <div id="hint-display" style="display:none;">
-        ヒント: <span id="display-hint-text"></span> | 枚数: <span id="display-hint-count"></span>
-    </div>
-</div>
-
-<!-- ポップアップ -->
-<div class="overlay" id="overlay"></div>
-<div class="popup" id="popup">
-    <h2 id="popup-message"></h2>
-    <button onclick="startNewGame()">新しいゲームを開始する</button>
-    <button onclick="goBack()">戻る</button>
-</div>
-
-<script>
-    const roomId = <?php echo json_encode($roomId); ?>; // ルームIDを取得
-
-    // 初期の色の枚数を設定
-    let colorCounts = {
-        red: <?php echo $colorDistribution['red']; ?>,
-        blue: <?php echo $colorDistribution['blue']; ?>
-    };
-
-    let currentTurn = "<?php echo $gameState['current_turn']; ?>"; // 現在のターンのチームを保持
-    let currentRole = "<?php echo $gameState['current_role']; ?>"; // 現在の役割を保持
-    let hintCount = <?php echo $gameState['hint_count']; ?>; // 現在のヒントでめくることができる枚数を保持
-    let hintText = "<?php echo $gameState['hint_text']; ?>"; // 現在のヒントのテキストを保持
-
-    document.addEventListener("DOMContentLoaded", function () {
-        updateTurnInfo(); // ターン情報を更新
-        // Opeのターンならヒント入力を表示、Asuのターンならヒント表示と推測終了ボタンを表示
-        if (currentRole === 'Ope') {
-            document.getElementById('hint-input').style.display = 'block';
-        } else {
-            document.getElementById('hint-display').style.display = 'block';
-            document.getElementById('end-turn').style.display = 'block';
-            document.getElementById('display-hint-text').innerText = hintText;
-            document.getElementById('display-hint-count').innerText = hintCount;
-        }
-        // 既にめくられたカードを反映
-        document.querySelectorAll('.card').forEach(card => {
-            if (card.getAttribute('data-flipped') == '1') {
-                card.style.backgroundColor = adjustColor(card.getAttribute('data-color'), 0.7); // 色を少し薄く
-                card.style.color = 'orange';
-                card.disabled = true;
-            } else if (currentRole === 'Ope') {
-                card.style.backgroundColor = card.getAttribute('data-color');
+            for ($i = 0; $i < $total_cards; $i += $cards_per_row) {
+                echo '<div class="row">';
+                for ($j = 0; $j < $cards_per_row; $j++) {
+                    if ($i + $j < $total_cards) {
+                        $card = $board[$i + $j];
+                        if ($card['state_ID'] == 1) {
+                            $background_image = getRandomImage($card['color']);
+                            echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-image: url(../img/' . $background_image . ');"></div>';
+                        } else {
+                            $background_color = $is_astronaut ? 'gray' : $card['color'];
+                            echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-color: ' . $background_color . ';">' . $card['card_name'] . '</div>';
+                        }
+                    }
+                }
+                echo '</div>';
             }
-        });
+            ?>
+        </div>
+    </div>
+    <?php if ($is_current_turn && $role_id == 1): ?>
+    <div class="hint-input">
+        <form id="hint-form">
+            <label for="hint">ヒント:</label>
+            <input type="text" id="hint" name="hint" required>
+            <label for="hint-count">枚数:</label>
+            <input type="number" id="hint-count" name="hint-count" required>
+            <button type="submit">送信</button>
+        </form>
+    </div>
+    <?php elseif ($is_current_turn && $role_id == 2): ?>
+    <div class="hint-display">
+        <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
+        <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p> <!-- ここで残りの枚数を表示 -->
+        <button id="end-turn">推測終了</button>
+    </div>
+    <?php else: ?>
+    <p>現在のターンではありません。待機してください。</p>
+    <?php endif; ?>
+    <div class="overlay"></div>
+    <div class="win-popup">
+        <div class="win-popup-content">
+            <p id="win-message"></p>
+            <button id="return-to-room">ルーム作成に戻る</button>
+        </div>
+    </div>
+    <div class="overlay"></div>
+    <div class="popup">
+        <p>カードをめくりますか？</p>
+        <button id="confirm-flip">はい</button>
+        <button id="cancel-flip">いいえ</button>
+    </div>
+    <div class="log">
+    <h3>宇宙遊泳記録</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>チーム</th>
+                <th>ヒント</th>
+                <th>枚数</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $stmt = $pdo->prepare("SELECT t.team_name, l.hint, l.sheet FROM Log l JOIN User u ON l.user_ID = u.user_ID JOIN Team t ON u.team_ID = t.team_ID WHERE l.room_ID = ? ORDER BY l.log_ID DESC");
+            $stmt->execute([$room_id]);
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 1秒ごとに状態を更新
-        setInterval(fetchGameState, 1000);
+            foreach ($logs as $log) {
+                echo '<tr>';
+                echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
+                echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
+                echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
+                echo '</tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+$(document).ready(function() {
+    let selectedCardId = null;
+    let gameEnded = false;
+
+    function attachCardClickHandlers() {
+        if (gameEnded) return; // ゲーム終了後は操作を無効にする
+        $('.card').off('click').on('click', function() {
+            <?php if ($is_current_turn && $role_id == 2): ?>
+                selectedCardId = $(this).data('card-id');
+                $('#overlay, .popup').show();
+            <?php else: ?>
+                alert('あなたの役割ではカードをめくることはできません');
+            <?php endif; ?>
+        });
+    }
+
+    attachCardClickHandlers();
+
+    $('#confirm-flip').click(function() {
+        if (selectedCardId) {
+            $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
+                if (response.status === 'success') {
+                    updateBoard();
+                } else if (response.status === 'win') {
+                    showWinPopup(response.message);
+                } else {
+                    alert(response.message);
+                }
+                $('#overlay, .popup').hide();
+            }, 'json');
+        }
     });
 
-    function fetchGameState() {
-        $.get('get_game_state.php', { room_id: roomId }, function(data) {
-            const gameState = JSON.parse(data);
-            currentTurn = gameState.current_turn;
-            currentRole = gameState.current_role;
-            hintCount = gameState.hint_count;
-            hintText = gameState.hint_text;
+    $('#cancel-flip').click(function() {
+        $('#overlay, .popup').hide();
+    });
 
-            updateTurnInfo();
-        });
-
-        $.get('get_board_state.php', { room_id: roomId }, function(data) {
-            const boardState = JSON.parse(data);
-            boardState.forEach(card => {
-                const cardElement = document.getElementById('card-' + card.board_ID);
-                cardElement.setAttribute('data-flipped', card.state_ID == 1 ? '1' : '0');
-                if (card.state_ID == 1) {
-                    const color = card.getAttribute('data-color'); // カードの色を取得
-                    const colorImageMap = {
-                        'red': 'red.webp',
-                        'blue': 'blue.webp',
-                        'black': 'black.webp',
-                        'white': 'white.webp'
-                    };
-
-                    const imgSrc = `../img/${colorImageMap[color]}`;
-                    cardElement.style.backgroundImage = `url('${imgSrc}')`; // 背景画像を設定
-                    cardElement.style.backgroundSize = 'cover'; // 背景画像のサイズを設定
-                    cardElement.style.color = 'orange'; // テキストの色を変更
-                    cardElement.disabled = true; // カードを無効化
-                } else if (currentRole === 'Ope') {
-                    cardElement.style.backgroundColor = card.getAttribute('data-color');
-                } else {
-                    cardElement.style.backgroundColor = 'gray';
-                }
-            });
-        });
-    }
-
-    function flipCard(card) {
-        if (currentRole !== 'Asu') {
-            alert("現在の役割ではカードをめくることはできません。"); // Asuでなければカードをめくることはできない
-            return;
-        }
-
-        const color = card.getAttribute('data-color'); // カードの色を取得
-        const colorImageMap = {
-            'red': 'red.webp',
-            'blue': 'blue.webp',
-            'black': 'black.webp',
-            'white': 'white.webp'
-        };
-
-        const imgSrc = `../img/${colorImageMap[color]}`;
-        card.style.backgroundImage = `url('${imgSrc}')`; // 背景画像を設定
-        card.style.backgroundSize = 'cover'; // 背景画像のサイズを設定
-        card.style.color = 'orange'; // テキストの色を変更
-        card.disabled = true; // カードを無効化
-        card.innerText = ''; // テキストを空にする
-
-        if (color == "black") {
-            showPopup(`めくってないチームの勝利です！`);
-            resetGameState(); // 勝利後にゲームステートをリセット
-            return;
-        }
-
-        if (color === currentTurn) {
-            hintCount--;
-            if (hintCount === 0) {
-                switchTurn();
+    $('#hint-form').submit(function(e) {
+        e.preventDefault();
+        const hint = $('#hint').val();
+        const hintCount = $('#hint-count').val();
+        $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
+            if (response.status === 'success') {
+                updateBoard();
+            } else {
+                alert(response.message);
             }
-        } else {
-            switchTurn();
-        }
+        }, 'json');
+    });
 
-        if (colorCounts[color] !== undefined) {
-            colorCounts[color]--;
-            document.getElementById(`count-${color}`).innerText = colorCounts[color];
-        }
-
-        checkForWin(); // 勝利条件をチェック
-
-        const cardId = card.getAttribute('data-id');
-        fetch('update-card.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ cardId, room_id: roomId })
-        });
-    }
-
-    function submitHint() {
-        const hintText = document.getElementById('hint-text').value;
-        const hintCountInput = document.getElementById('hint-count').value;
-        if (hintText.trim() === '' || hintCountInput.trim() === '') {
-            alert('ヒントと枚数を入力してください。');
-            return;
-        }
-        hintCount = parseInt(hintCountInput, 10);
-        switchRole();
-        fetch('update-hint.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ hintText, hintCount, room_id: roomId })
-        });
-    }
-
-    function switchRole() {
-        currentRole = currentRole === 'Ope' ? 'Asu' : 'Ope';
-        document.getElementById('hint-input').style.display = currentRole === 'Ope' ? 'block' : 'none';
-        document.getElementById('hint-display').style.display = currentRole === 'Ope' ? 'none' : 'block';
-        document.getElementById('end-turn').style.display = currentRole === 'Ope' ? 'none' : 'block';
-        updateTurnInfo();
-    }
-
-    function switchTurn() {
-        currentTurn = currentTurn === 'red' ? 'blue' : 'red';
-        currentRole = 'Ope';
-        hintCount = 0;
-        hintText = '';
-        document.getElementById('hint-input').style.display = 'block';
-        document.getElementById('hint-display').style.display = 'none';
-        document.getElementById('end-turn').style.display = 'none';
-        updateTurnInfo();
-        fetch('switch-turn.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ room_id: roomId })
-        });
-    }
-
-    function updateTurnInfo() {
-        document.getElementById('current-turn').innerText = currentTurn;
-        document.getElementById('current-role').innerText = currentRole;
-        document.querySelectorAll('.card').forEach(card => {
-            if (card.getAttribute('data-flipped') == '0' && currentRole === 'Asu') {
-                card.style.backgroundColor = 'gray';
-            } else if (card.getAttribute('data-flipped') == '0' && currentRole === 'Ope') {
-                card.style.backgroundColor = card.getAttribute('data-color');
+    $('#end-turn').click(function() {
+        $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            if (response.status === 'success') {
+                updateBoard();
+            } else {
+                alert(response.message);
             }
-        });
-        if (currentRole === 'Asu') {
-            document.getElementById('display-hint-text').innerText = hintText;
-            document.getElementById('display-hint-count').innerText = hintCount;
-            document.getElementById('end-turn').style.display = 'block'; // Asuのターンのみ表示
-        } else {
-            document.getElementById('end-turn').style.display = 'none'; // Opeのターンでは非表示
-        }
+        }, 'json');
+    });
+
+    function updateBoard() {
+        $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            console.log('Board response:', response); // デバッグログ追加
+            if (response.status === 'success') {
+                $('#game-board').html(response.board);
+                $('#red-count').text(response.red_count);
+                $('#blue-count').text(response.blue_count);
+                attachCardClickHandlers();
+            } else {
+                console.error(response.message);
+            }
+        }, 'json');
+
+        $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            console.log('Game state response:', response); // デバッグログ追加
+            if (response.status === 'success') {
+                location.reload(); // 強制的にページをリロードして最新の状態を反映する
+            } else {
+                console.error(response.message);
+            }
+        }, 'json');
     }
 
-    function checkForWin() {
-        if (colorCounts.red === 0) {
-            showPopup("赤チームの勝利です！");
-            resetGameState(); // 勝利後にゲームステートをリセット
-        } else if (colorCounts.blue === 0) {
-            showPopup("青チームの勝利です！");
-            resetGameState(); // 勝利後にゲームステートをリセット
-        }
-    }
-
-    function resetGameState() {
-        fetch('reset-game-state.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ room_id: roomId })
-        });
-    }
-
-    function startNewGame() {
-        fetch('reset-board.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ room_id: roomId })
-        }).then(() => {
-            location.reload();
+    function showWinPopup(message) {
+        gameEnded = true;
+        $('#win-message').text(message);
+        $('#win-popup, #overlay').removeClass('hidden');
+        $('#return-to-room').click(function() {
+            window.location.href = '../header/reset2.php';
         });
     }
 
-    function goBack() {
-        window.location.href = '../G1-2/G1-2.php';
-    }
-
-    function adjustColor(color, factor) {
-        const colorMap = {
-            "red": "#FF9999",
-            "blue": "#9999FF",
-            "black": "#999999",
-            "white": "#CCCCCC"
-        };
-        return colorMap[color] || color;
-    }
-
-    function showPopup(message) {
-        document.getElementById('popup-message').innerText = message;
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('popup').style.display = 'block';
-    }
-
-    function closePopup() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('popup').style.display = 'none';
-    }
-
-    function endTurn() {
-        switchTurn();
-    }
-</script>
+    // 定期的に更新を確認する
+    //setInterval(updateBoard, 5000);
+});
+    </script>
 </body>
 </html>

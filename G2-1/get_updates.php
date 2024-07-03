@@ -1,4 +1,5 @@
 <?php
+session_start();
 require '../db-connect.php';
 
 $room_id = $_GET['room_id'] ?? '';
@@ -10,15 +11,17 @@ if (empty($room_id)) {
 
 try {
     $pdo = connectDB();
-    $stmt = $pdo->prepare("SELECT current_team, current_role FROM GameState WHERE room_ID = ?");
+    $stmt = $pdo->prepare("SELECT last_update FROM Room WHERE room_ID = ?");
     $stmt->execute([$room_id]);
-    $game_state = $stmt->fetch(PDO::FETCH_ASSOC);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$game_state) {
-        throw new Exception('Game state not found');
+    if (!$result) {
+        throw new Exception('Room not found');
     }
 
-    echo json_encode(['status' => 'success', 'game_state' => $game_state]);
+    $last_update = $result['last_update'];
+
+    echo json_encode(['status' => 'success', 'last_update' => $last_update]);
 } catch (Exception $e) {
     echo json_encode(['status' => 'error', 'message' => 'データベースエラー: ' . $e->getMessage()]);
 }

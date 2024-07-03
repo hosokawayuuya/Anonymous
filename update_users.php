@@ -24,6 +24,8 @@ try {
     if ($count == 0) {
         $stmt = $pdo->prepare("UPDATE User SET role_ID = ?, team_ID = ? WHERE room_ID = ? AND user_name = ?");
         $stmt->execute([$role_id, $team_id, $room_id, $nickname]);
+        $_SESSION['role_id'] = $role_id; // 役割IDをセッションに保存
+        $_SESSION['team_id'] = $team_id; // チームIDをセッションに保存
         $pdo->commit();
         echo "役割が設定されました";
     } else {

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require '../db-connect.php';
-
+ 
 // 新しいルームに入る際にニックネームとホストフラグをリセットする
 if (isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['room_key']) {
     // ルームキーが変更された場合、ホストフラグとニックネームをリセット
@@ -9,7 +9,7 @@ if (isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['ro
     unset($_SESSION['nickname']);
     $_SESSION['last_room_key'] = $_GET['room_key'];
 }
-
+ 
 // URLからroom_keyとroom_idを取得
 $room_key = $_GET['room_key'] ?? '';
 $room_id = $_GET['room_id'] ?? '';
@@ -18,7 +18,7 @@ $is_host = $_SESSION['is_host'] ?? false;
 $users = [];
 $userCount = 0;
 $roomStatus = '';
-
+ 
 if (empty($room_id) && !empty($room_key)) {
     // room_keyを使ってroom_IDを取得
     try {
@@ -26,7 +26,7 @@ if (empty($room_id) && !empty($room_key)) {
         $stmt = $pdo->prepare("SELECT room_ID FROM Room WHERE room_key = ?");
         $stmt->execute([$room_key]);
         $room_id = $stmt->fetchColumn();
-
+ 
         if (!$room_id) {
             throw new Exception('無効なルームキーです。');
         }
@@ -38,39 +38,53 @@ if (empty($room_id) && !empty($room_key)) {
         exit();
     }
 }
-
+ 
 if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nickname'])) {
     $nickname = htmlspecialchars($_POST['nickname'], ENT_QUOTES, 'UTF-8');
-
+ 
     try {
         $pdo = connectDB();
+        // ニックネームの重複をチェック
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM User WHERE room_ID = ? AND user_name = ?");
+        $stmt->execute([$room_id, $nickname]);
+        $count = $stmt->fetchColumn();
+
+        if ($count > 0) {
+            throw new Exception('このニックネームは既に使用されています。別のニックネームを入力してください。');
+            //unset($_SESSION['nickname']);
+        }
         $stmt = $pdo->prepare("INSERT INTO User (room_ID, user_name, team_ID, role_ID) VALUES (?, ?, NULL, NULL)");
         $stmt->execute([$room_id, $nickname]);
-
+ 
         $_SESSION['nickname'] = $nickname;
-
+        //追加要素
+        $_SESSION['user_id'] = $pdo->lastInsertId();
+ 
         header("Location: G1-3.php?room_key=$room_key&room_id=$room_id");
         exit();
+    } catch (Exception $e) {
+        echo 'エラー: ' . $e->getMessage();
+        $nickname = "";
     } catch (PDOException $e) {
         echo 'データベース接続エラー: ' . $e->getMessage();
         exit();
     }
 }
-
+ 
 try {
     $pdo = connectDB();
     $stmt = $pdo->prepare("SELECT user_name, team_ID, role_ID FROM User WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+ 
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM User WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $userCount = $stmt->fetchColumn();
-
+ 
     $stmt = $pdo->prepare("SELECT status FROM Room WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $roomStatus = $stmt->fetchColumn();
-
+ 
     // 役割ごとのユーザー情報を取得
     $stmt = $pdo->prepare("SELECT user_name, team_ID, role_ID FROM User WHERE room_ID = ? AND role_ID IS NOT NULL");
     $stmt->execute([$room_id]);
@@ -79,17 +93,17 @@ try {
     echo 'データベース接続エラー: ' . $e->getMessage();
     exit();
 }
-
+ 
 $teamNames = [1 => '赤チーム', 2 => '青チーム'];
 $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="G1-3ver2.0.css">
-    <title>チームデザイン</title>
+    <title>Anonymous</title>
     <style>
         .disabled-button {
             pointer-events: none;
@@ -103,7 +117,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     $(document).ready(function() {
         const roomKey = "<?php echo htmlspecialchars($room_key); ?>";
         const roomId = "<?php echo htmlspecialchars($room_id); ?>";
-
+ 
         function updateUsers() {
             $.get('get_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 $('#userList').html(data);
@@ -112,7 +126,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
             });
         }
-
+ 
         function updateUserCount() {
             $.get('../count_users.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 $('#userCount').text(data);
@@ -120,13 +134,13 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
             });
         }
-
+ 
         function updateRoleButtons() {
             $.get('get_role_status.php', {room_key: roomKey, room_id: roomId}, function(data) {
                 const result = JSON.parse(data);
                 const roles = result.roles;
                 const allRolesSelected = result.allRolesSelected;
-
+ 
                 $('.role-button').each(function() {
                     const roleId = $(this).data('role-id');
                     const teamId = $(this).data('team-id');
@@ -137,7 +151,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                         $(this).removeClass('disabled-button').prop('disabled', false);
                     }
                 });
-
+ 
                 if (allRolesSelected) {
                     $('#startGame').show();
                 } else {
@@ -147,7 +161,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
             });
         }
-
+ 
         function updateRoleUsers() {
             $.get('get_role_users.php', {room_key : roomKey , room_id: roomId}, function(data) {
                 const roles = JSON.parse(data);
@@ -155,7 +169,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 $('#astronaut-red').html('');
                 $('#operator-blue').html('');
                 $('#astronaut-blue').html('');
-
+ 
                 roles.forEach(function(user) {
                     if (user.team_ID == 1 && user.role_ID == 1) {
                         $('#operator-red').append('<p>' + user.user_name + '</p>');
@@ -171,7 +185,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
             });
         }
-
+ 
         function checkGameStart() {
             $.get('../check_game_start.php', {room_key:roomKey,room_id: roomId}, function(data) {
                 if (data === 'started') {
@@ -181,7 +195,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 console.error("AJAXエラー: " + textStatus + ", " + errorThrown);
             });
         }
-
+ 
         function refreshData() {
             updateUsers();
             updateUserCount();
@@ -189,9 +203,9 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             checkGameStart();
             updateRoleUsers();
         }
-
+ 
         setInterval(refreshData, 1000);
-
+ 
         $('.role-button').click(function() {
             const roleId = $(this).data('role-id');
             const teamId = $(this).data('team-id');
@@ -200,7 +214,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 refreshData();
             });
         });
-
+ 
         $('#startGame').click(function() {
             $.post('../start_game.php', {room_key: roomKey , room_id: roomId}, function(response) {
                 const data = JSON.parse(response);
@@ -211,7 +225,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 }
             });
         });
-
+ 
         $('#startGame').hide();
     });
 </script>
@@ -230,7 +244,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         } ?>
     </div>
 </div>
-
+ 
 <div class="container">
     <div class="team-box red-team">
         <h2>赤チーム</h2>
@@ -246,18 +260,18 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             <div id="astronaut-red"></div>
         </div>
     </div>
-
+ 
     <button id="startGame" style="display: none;">ゲームスタート</button>
-
+ 
     <div class="info-box">
-        <h1>ルール: <span id="userCount"><?php echo $userCount; ?></span></h1>
+        <h1>人数: <span id="userCount"><?php echo $userCount; ?></span></h1>
         <div id="userList">
             <?php foreach ($users as $user) {
                 echo "<p>{$user['user_name']}</p>";
             } ?>
         </div>
     </div>
-
+ 
     <div class="team-box blue-team">
         <h2>青チーム</h2>
         <div class="photo-container">
@@ -273,6 +287,6 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         </div>
     </div>
 </div>
-
+ 
 </body>
 </html>
