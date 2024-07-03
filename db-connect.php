@@ -1,8 +1,8 @@
 <?php
-    const SERVER = 'mysql304.phy.lolipop.lan';
-    const DBNAME = 'LAA1517459-anonymous';
-    const USER = 'LAA1517459';
-    const PASS = 'Pass0515';
+const SERVER = 'mysql305.phy.lolipop.lan';
+const DBNAME = 'LAA1518876-anonymous24';
+const USER = 'LAA1518876';
+const PASS = 'Pass0309';
 
 function connectDB() {
     $dsn = 'mysql:host=' . SERVER . ';dbname=' . DBNAME . ';charset=utf8';
