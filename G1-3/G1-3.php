@@ -44,31 +44,20 @@ if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !e
  
     try {
         $pdo = connectDB();
-        // ニックネームの重複をチェック
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM User WHERE room_ID = ? AND user_name = ?");
-        $stmt->execute([$room_id, $nickname]);
-        $count = $stmt->fetchColumn();
-
-        if ($count > 0) {
-            throw new Exception('このニックネームは既に使用されています。別のニックネームを入力してください。');
-            //unset($_SESSION['nickname']);
-        }
         $stmt = $pdo->prepare("INSERT INTO User (room_ID, user_name, team_ID, role_ID) VALUES (?, ?, NULL, NULL)");
         $stmt->execute([$room_id, $nickname]);
- 
+
         $_SESSION['nickname'] = $nickname;
         //追加要素
         $_SESSION['user_id'] = $pdo->lastInsertId();
  
         header("Location: G1-3.php?room_key=$room_key&room_id=$room_id");
         exit();
-    } catch (Exception $e) {
-        echo 'エラー: ' . $e->getMessage();
-        $nickname = "";
     } catch (PDOException $e) {
         echo 'データベース接続エラー: ' . $e->getMessage();
         exit();
     }
+    
 }
  
 try {
