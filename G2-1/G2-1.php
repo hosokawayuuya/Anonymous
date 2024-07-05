@@ -26,7 +26,7 @@ try {
     $stmt = $pdo->prepare("SELECT color, COUNT(*) as count FROM Board WHERE room_ID = ? AND state_ID = 2 GROUP BY color");
     $stmt->execute([$room_id]);
     $color_counts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+   
     $counts = [
         'red' => 0,
         'blue' => 0,
@@ -86,7 +86,7 @@ function getRandomImage($color) {
     <div class="container">
         <div class="counts">
             <div>赤チーム: <span id="red-count"><?php echo $red_count; ?></span></div>
-            <?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?>
+            <div id="current-team-role"><?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?></div>
             <div>青チーム: <span id="blue-count"><?php echo $blue_count; ?></span></div>
         </div>
         <div id="game-board">
@@ -133,13 +133,6 @@ function getRandomImage($color) {
     <p>現在のターンではありません。待機してください。</p>
     <?php endif; ?>
     <div class="overlay"></div>
-    <div class="win-popup">
-        <div class="win-popup-content">
-            <p id="win-message"></p>
-            <button id="return-to-room">ルーム作成に戻る</button>
-        </div>
-    </div>
-    <div class="overlay"></div>
     <div class="popup">
         <p>カードをめくりますか？</p>
         <button id="confirm-flip">はい</button>
@@ -147,7 +140,7 @@ function getRandomImage($color) {
     </div>
     <div class="log">
     <h3>宇宙遊泳記録</h3>
-    <table>
+    <table id="log-table">
         <thead>
             <tr>
                 <th>チーム</th>
@@ -178,6 +171,7 @@ function getRandomImage($color) {
 $(document).ready(function() {
     let selectedCardId = null;
     let gameEnded = false;
+    let isMyTurn = <?php echo json_encode($is_current_turn); ?>; // 自分のターンかどうかのフラグ
 
     function attachCardClickHandlers() {
         if (gameEnded) return; // ゲーム終了後は操作を無効にする
@@ -198,8 +192,7 @@ $(document).ready(function() {
             $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
                 if (response.status === 'success') {
                     updateBoard();
-                } else if (response.status === 'win') {
-                    showWinPopup(response.message);
+                    location.reload(); // カードをめくった直後にページをリロード
                 } else {
                     alert(response.message);
                 }
@@ -219,6 +212,7 @@ $(document).ready(function() {
         $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
             if (response.status === 'success') {
                 updateBoard();
+                location.reload(); // ヒントを送信した直後にページをリロード
             } else {
                 alert(response.message);
             }
@@ -228,7 +222,9 @@ $(document).ready(function() {
     $('#end-turn').click(function() {
         $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             if (response.status === 'success') {
+                isMyTurn = false; // 自分のターンが終わる
                 updateBoard();
+                location.reload(); // 自身のターンが終わった直後にページをリロード
             } else {
                 alert(response.message);
             }
@@ -236,6 +232,8 @@ $(document).ready(function() {
     });
 
     function updateBoard() {
+        if (isMyTurn) return; // 自分のターンなら更新をスキップ
+
         $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             console.log('Board response:', response); // デバッグログ追加
             if (response.status === 'success') {
@@ -251,25 +249,52 @@ $(document).ready(function() {
         $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             console.log('Game state response:', response); // デバッグログ追加
             if (response.status === 'success') {
-                location.reload(); // 強制的にページをリロードして最新の状態を反映する
+                // ターンが切り替わったらページをリロード
+                if (!isMyTurn && response.game_state.current_team == <?php echo json_encode($team_id); ?> && response.game_state.current_role == <?php echo json_encode($role_id); ?>) {
+                    location.reload();
+                }
+                // 現在のチーム・役割のUIを更新
+                $('#current-team-role').text((response.game_state.current_team == 1 ? '赤' : '青') + 'チームの' + (response.game_state.current_role == 1 ? 'オペレーター' : 'アストロノーツ'));
+                // ゲームのログを更新
+                updateLog();
             } else {
                 console.error(response.message);
             }
         }, 'json');
     }
 
-    function showWinPopup(message) {
-        gameEnded = true;
-        $('#win-message').text(message);
-        $('#win-popup, #overlay').removeClass('hidden');
-        $('#return-to-room').click(function() {
-            window.location.href = '../header/reset2.php';
+    function updateLog() {
+        $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            if (response.status === 'success') {
+                let logHtml = '';
+                response.logs.forEach(log => {
+                    logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
+                });
+                $('#log-table tbody').html(logHtml);
+            } else {
+                console.error(response.message);
+            }
+        }, 'json');
+    }
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+                '/': '&#x2F;',
+                '=': '&#x3D;',
+                '`': '&#x60;'
+            }[s];
         });
     }
 
     // 定期的に更新を確認する
-    //setInterval(updateBoard, 5000);
+    setInterval(updateBoard, 500);
 });
-    </script>
+</script>
 </body>
 </html>
