@@ -119,10 +119,15 @@ function getRandomImage($color) {
             <label for="hint">ヒント:</label>
             <input type="text" id="hint" name="hint" required>
             <label for="hint-count">枚数:</label>
-            <input type="number" id="hint-count" name="hint-count" required>
+            <select id="hint-count" name="hint-count" required>
+                <?php for ($i = 1; $i <= 9; $i++): ?>
+                    <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                <?php endfor; ?>
+            </select>
             <button type="submit">送信</button>
         </form>
     </div>
+
     <?php elseif ($is_current_turn && $role_id == 2): ?>
     <div class="hint-display">
         <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
@@ -132,169 +137,204 @@ function getRandomImage($color) {
     <?php else: ?>
     <p>現在のターンではありません。待機してください。</p>
     <?php endif; ?>
-    <div class="overlay"></div>
-    <div class="popup">
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="flip-popup">
         <p>カードをめくりますか？</p>
         <button id="confirm-flip">はい</button>
         <button id="cancel-flip">いいえ</button>
     </div>
+    <div class="popup" id="win-popup">
+        <p id="win-message"></p>
+        <button id="return-to-room">ルーム作成に戻る</button>
+    </div>
     <div class="log">
-    <h3>宇宙遊泳記録</h3>
-    <table id="log-table">
-        <thead>
-            <tr>
-                <th>チーム</th>
-                <th>ヒント</th>
-                <th>枚数</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $stmt = $pdo->prepare("SELECT t.team_name, l.hint, l.sheet FROM Log l JOIN User u ON l.user_ID = u.user_ID JOIN Team t ON u.team_ID = t.team_ID WHERE l.room_ID = ? ORDER BY l.log_ID DESC");
-            $stmt->execute([$room_id]);
-            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        <h3>宇宙遊泳記録</h3>
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>チーム</th>
+                    <th>ヒント</th>
+                    <th>枚数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $stmt = $pdo->prepare("SELECT t.team_name, l.hint, l.sheet FROM Log l JOIN User u ON l.user_ID = u.user_ID JOIN Team t ON u.team_ID = t.team_ID WHERE l.room_ID = ? ORDER BY l.log_ID DESC");
+                $stmt->execute([$room_id]);
+                $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($logs as $log) {
-                echo '<tr>';
-                echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
-                echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
-                echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
-                echo '</tr>';
-            }
-            ?>
-        </tbody>
-    </table>
-</div>
+                foreach ($logs as $log) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
+                    echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
+                    echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
+                    echo '</tr>';
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-$(document).ready(function() {
-    let selectedCardId = null;
-    let gameEnded = false;
-    let isMyTurn = <?php echo json_encode($is_current_turn); ?>; // 自分のターンかどうかのフラグ
+        $(document).ready(function() {
+            let selectedCardId = null;
+            let gameEnded = false;
+            let isMyTurn = <?php echo json_encode($is_current_turn); ?>; // 自分のターンかどうかのフラグ
 
-    function attachCardClickHandlers() {
-        if (gameEnded) return; // ゲーム終了後は操作を無効にする
-        $('.card').off('click').on('click', function() {
-            <?php if ($is_current_turn && $role_id == 2): ?>
-                selectedCardId = $(this).data('card-id');
-                $('#overlay, .popup').show();
-            <?php else: ?>
-                alert('あなたの役割ではカードをめくることはできません');
-            <?php endif; ?>
-        });
-    }
-
-    attachCardClickHandlers();
-
-    $('#confirm-flip').click(function() {
-        if (selectedCardId) {
-            $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
-                if (response.status === 'success') {
-                    updateBoard();
-                    location.reload(); // カードをめくった直後にページをリロード
-                } else {
-                    alert(response.message);
-                }
-                $('#overlay, .popup').hide();
-            }, 'json');
-        }
-    });
-
-    $('#cancel-flip').click(function() {
-        $('#overlay, .popup').hide();
-    });
-
-    $('#hint-form').submit(function(e) {
-        e.preventDefault();
-        const hint = $('#hint').val();
-        const hintCount = $('#hint-count').val();
-        $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
-            if (response.status === 'success') {
-                updateBoard();
-                location.reload(); // ヒントを送信した直後にページをリロード
-            } else {
-                alert(response.message);
-            }
-        }, 'json');
-    });
-
-    $('#end-turn').click(function() {
-        $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-            if (response.status === 'success') {
-                isMyTurn = false; // 自分のターンが終わる
-                updateBoard();
-                location.reload(); // 自身のターンが終わった直後にページをリロード
-            } else {
-                alert(response.message);
-            }
-        }, 'json');
-    });
-
-    function updateBoard() {
-        if (isMyTurn) return; // 自分のターンなら更新をスキップ
-
-        $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-            console.log('Board response:', response); // デバッグログ追加
-            if (response.status === 'success') {
-                $('#game-board').html(response.board);
-                $('#red-count').text(response.red_count);
-                $('#blue-count').text(response.blue_count);
-                attachCardClickHandlers();
-            } else {
-                console.error(response.message);
-            }
-        }, 'json');
-
-        $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-            console.log('Game state response:', response); // デバッグログ追加
-            if (response.status === 'success') {
-                // ターンが切り替わったらページをリロード
-                if (!isMyTurn && response.game_state.current_team == <?php echo json_encode($team_id); ?> && response.game_state.current_role == <?php echo json_encode($role_id); ?>) {
-                    location.reload();
-                }
-                // 現在のチーム・役割のUIを更新
-                $('#current-team-role').text((response.game_state.current_team == 1 ? '赤' : '青') + 'チームの' + (response.game_state.current_role == 1 ? 'オペレーター' : 'アストロノーツ'));
-                // ゲームのログを更新
-                updateLog();
-            } else {
-                console.error(response.message);
-            }
-        }, 'json');
-    }
-
-    function updateLog() {
-        $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-            if (response.status === 'success') {
-                let logHtml = '';
-                response.logs.forEach(log => {
-                    logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
+            function attachCardClickHandlers() {
+                if (gameEnded) return; // ゲーム終了後は操作を無効にする
+                $('.card').off('click').on('click', function() {
+                    <?php if ($is_current_turn && $role_id == 2): ?>
+                        selectedCardId = $(this).data('card-id');
+                        $('#overlay').addClass('active');
+                        $('#flip-popup').addClass('active');
+                    <?php else: ?>
+                        alert('あなたの役割ではカードをめくることはできません');
+                    <?php endif; ?>
                 });
-                $('#log-table tbody').html(logHtml);
-            } else {
-                console.error(response.message);
             }
-        }, 'json');
-    }
 
-    function escapeHtml(string) {
-        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
-            return {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-                '/': '&#x2F;',
-                '=': '&#x3D;',
-                '`': '&#x60;'
-            }[s];
+            attachCardClickHandlers();
+
+            $('#confirm-flip').click(function() {
+                if (selectedCardId) {
+                    $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
+                        if (response.status === 'success') {
+                            updateBoard();
+                            if (response.reload) {
+                                location.reload(); // カードをめくった直後にページをリロード
+                            }
+                        } else if (response.status === 'win') {
+                            gameEnded = true;
+                            $('#win-message').text(response.message);
+                            $('#flip-popup').hide();
+                            $('#win-popup').show();
+                            $('#overlay').show(); // 勝利時のポップアップを表示
+                        } else {
+                            alert(response.message);
+                        }
+                        $('#overlay').removeClass('active');
+                        $('#flip-popup').removeClass('active');
+                    }, 'json');
+                }
+            });
+
+            $('#cancel-flip').click(function() {
+                $('#overlay').removeClass('active');
+                $('#flip-popup').removeClass('active');
+            });
+
+            $('#return-to-room').click(function() {
+                window.location.href = '../G1-2/G1-2.php'; // ルーム作成に戻る
+            });
+
+            $('#hint-form').submit(function(e) {
+                e.preventDefault();
+                const hint = $('#hint').val();
+                const hintCount = $('#hint-count').val();
+                $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
+                    if (response.status === 'success') {
+                        updateBoard();
+                        location.reload(); // ヒントを送信した直後にページをリロード
+                    } else {
+                        alert(response.message);
+                    }
+                }, 'json');
+            });
+
+            $('#end-turn').click(function() {
+                $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+                    if (response.status === 'success') {
+                        isMyTurn = false; // 自分のターンが終わる
+                        updateBoard();
+                        location.reload(); // 自身のターンが終わった直後にページをリロード
+                    } else {
+                        alert(response.message);
+                    }
+                }, 'json');
+            });
+
+            function updateBoard() {
+                if (isMyTurn) return; // 自分のターンなら更新をスキップ
+
+                $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+                    console.log('Board response:', response); // デバッグログ追加
+                    if (response.status === 'success') {
+                        $('#game-board').html(response.board);
+                        $('#red-count').text(response.red_count);
+                        $('#blue-count').text(response.blue_count);
+                        attachCardClickHandlers();
+                    } else {
+                        console.error(response.message);
+                    }
+                }, 'json');
+
+                $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+                    console.log('Game state response:', response); // デバッグログ追加
+                    if (response.status === 'success') {
+                        // ターンが切り替わったらページをリロード
+                        if (!isMyTurn && response.game_state.current_team == <?php echo json_encode($team_id); ?> && response.game_state.current_role == <?php echo json_encode($role_id); ?>) {
+                            location.reload();
+                        }
+                        // 現在のチーム・役割のUIを更新
+                        $('#current-team-role').text((response.game_state.current_team == 1 ? '赤' : '青') + 'チームの' + (response.game_state.current_role == 1 ? 'オペレーター' : 'アストロノーツ'));
+                        // ゲームのログを更新
+                        updateLog();
+                    } else {
+                        console.error(response.message);
+                    }
+                }, 'json');
+            }
+
+            function updateLog() {
+                $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+                    if (response.status === 'success') {
+                        let logHtml = '';
+                        response.logs.forEach(log => {
+                            logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
+                        });
+                        $('#log-table tbody').html(logHtml);
+                    } else {
+                        console.error(response.message);
+                    }
+                }, 'json');
+            }
+
+            function escapeHtml(string) {
+                return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;',
+                        '/': '&#x2F;',
+                        '=': '&#x3D;',
+                        '`': '&#x60;'
+                    }[s];
+                });
+            }
+
+            // 定期的に更新を確認する
+            setInterval(updateBoard, 500);
+
+            // 勝利チェックを定期的に行う
+            setInterval(checkWin, 1000);
+
+            function checkWin() {
+                $.get('win_check.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+                    if (response.status === 'win') {
+                        gameEnded = true;
+                        $('#win-message').text(response.message);
+                        $('#flip-popup').removeClass('active');
+                        $('#win-popup').addClass('active');
+                        $('#overlay').addClass('active'); // 勝利時のポップアップを表示
+                    }
+                }, 'json');
+            }
         });
-    }
-
-    // 定期的に更新を確認する
-    setInterval(updateBoard, 500);
-});
-</script>
+        //修正前
+    </script>
 </body>
 </html>

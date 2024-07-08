@@ -27,6 +27,9 @@ try {
     $stmt = $pdo->prepare("UPDATE Board SET state_ID = 1 WHERE room_ID = ? AND board_ID = ?");
     $stmt->execute([$room_id, $card_id]);
 
+    // デバッグログ
+    error_log("Card with ID $card_id flipped in room $room_id");
+
     // Room テーブルの last_update を更新
     $stmt = $pdo->prepare("UPDATE Room SET last_update = CURRENT_TIMESTAMP WHERE room_ID = ?");
     $stmt->execute([$room_id]);
@@ -57,24 +60,36 @@ try {
         $counts[$count['color']] = $count['count'];
     }
 
+    $stmt = $pdo->prepare("SELECT current_team FROM GameState WHERE room_ID = ?");
+    $stmt->execute([$room_id]);
+    $current_state = $stmt->fetch(PDO::FETCH_ASSOC);
+    $current_team = $current_state['current_team'];
+
     if ($counts['red'] == 0) {
         // 赤チームの勝利
+        $stmt = $pdo->prepare("UPDATE GameState SET status = 'win', winner_team = 1 WHERE room_ID = ?");
+        $stmt->execute([$room_id]);
         $pdo->commit();
         echo json_encode(['status' => 'win', 'message' => '赤チームの勝ち！']);
         exit();
     } elseif ($counts['blue'] == 0) {
         // 青チームの勝利
+        $stmt = $pdo->prepare("UPDATE GameState SET status = 'win', winner_team = 2 WHERE room_ID = ?");
+        $stmt->execute([$room_id]);
         $pdo->commit();
         echo json_encode(['status' => 'win', 'message' => '青チームの勝ち！']);
         exit();
     } elseif ($card_color == 'black') {
         // 黒カードを引いた場合
-        $winning_team = ($current_team == 1) ? '青' : '赤';
+        $winning_team = ($current_team == 1) ? 2 : 1;
+        $stmt = $pdo->prepare("UPDATE GameState SET status = 'win', winner_team = ? WHERE room_ID = ?");
+        $stmt->execute([$winning_team, $room_id]);
         $pdo->commit();
-        echo json_encode(['status' => 'win', 'message' => $winning_team . 'チームの勝ち！']);
+        echo json_encode(['status' => 'win', 'message' => ($winning_team == 1 ? '赤' : '青') . 'チームの勝ち！']);
         exit();
     }
 
+    // 次のターンの設定
     $stmt = $pdo->prepare("SELECT current_team, current_role, hint_count FROM GameState WHERE room_ID = ?");
     $stmt->execute([$room_id]);
     $current_state = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -106,7 +121,7 @@ try {
     $stmt->execute([$next_team, $next_role, $hint_count, $room_id]);
 
     $pdo->commit();
-    echo json_encode(['status' => 'success']);
+    echo json_encode(['status' => 'success', 'reload' => true]);
 } catch (Exception $e) {
     $pdo->rollBack();
     echo json_encode(['status' => 'error', 'message' => 'データベースエラー: ' . $e->getMessage()]);
