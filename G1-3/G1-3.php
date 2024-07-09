@@ -1,6 +1,7 @@
 <?php
 session_start();
 require '../db-connect.php';
+require '../header/header.php';
  
 // 新しいルームに入る際にニックネームとホストフラグをリセットする
 if (isset($_GET['room_key']) && ($_SESSION['last_room_key'] ?? '') !== $_GET['room_key']) {
@@ -103,6 +104,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="G1-3ver2.0.css">
+    <link rel="stylesheet" href="../header/header.css">
     <title>Anonymous</title>
     <style>
         .disabled-button {
