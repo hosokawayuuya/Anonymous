@@ -5,11 +5,18 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
+    padding-top: 70px; /* ヘッダーの高さ分の余白を追加 */
 }
 
 .container {
     width: 100%;
-    max-width: 800px; /* 調整した最大幅 */
+    display: flex;
+    justify-content: space-between; /* コンテナ内の要素を左右に分ける */
+    padding: 20px;
+}
+
+.main-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -36,11 +43,11 @@ body {
     vertical-align: middle;
     line-height: 100px;
     color: orange;
-    background-color: gray; /* 初期背景色 */
+    background-color: gray;
     font-weight: bold;
-    border: 2px solid black; /* 枠線 */
+    border: 2px solid black;
     cursor: pointer;
-    background-size: cover; /* 背景画像のサイズをカバーに設定 */
+    background-size: cover;
 }
 
 .hint-input, .end-turn, #hint-display {
@@ -94,3 +101,106 @@ body {
 .overlay.active, .popup.active {
     display: block;
 }
+
+.log {
+    flex: 0.3; /* 右側のログの幅を設定 */
+    overflow-y: auto; /* ログのスクロールを有効にする */
+    padding: 20px;
+    background: white;
+    border: 1px solid black;
+}
+
+/*ヘッダーのcss*/
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: black;
+    height: 70px;
+    color: rgb(243, 233, 233);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+nav h5 {
+    margin: 0;
+    color: rgb(255, 252, 252);
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-buttons button {
+    padding: 10px 20px;
+    border-radius: 50%;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* .popup {
+    display: none;
+    position: fixed;
+    top: 15%;
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    color: white;
+    background-image: url('https://www.yuu-diaryblog.com/wp-content/uploads/2017/10/space-background13.jpg');
+    background-size: cover;
+    background-position: center;
+    overflow-y: auto;
+} */
+
+.popup h1, .popup h2, .popup p {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+    border: none;
+    color: white;
+}
+
+.close-button:hover {
+    color: #ccc;
+}
+
+.center-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.overlay.active, .popup.active {
+    display: block;
+}
+

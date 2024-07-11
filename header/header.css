@@ -1,159 +1,93 @@
 header {
     position: fixed;
     top: 0;
-    width: 70%; /* ヘッダーを幅いっぱいに広げる */
-    height: 70px; /* ヘッダーの高さを設定 */
+    width: 100%;
+    background-color: black;
+    height: 70px;
     color: rgb(243, 233, 233);
     display: flex;
-
-}
-
-h5 {
-    color: rgb(8, 8, 8);
-}
-
-.container1 nav {
-    display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0 20px; /* 左右にパディングを追加 */
+    padding: 0 20px;
+    z-index: 1000;
 }
 
-nav .left,
-nav .right {
+nav h5 {
+    margin: 0;
+    color: rgb(255, 252, 252);
+}
+
+.nav-buttons {
     display: flex;
-    align-items: center;
+    gap: 10px;
 }
 
-.left h5, 
-.left #urlButton {
-    margin-right: 10px; /* 参加人数とURLボタンの間隔を設定 */
+.nav-buttons button {
+    padding: 10px 20px;
+    border-radius: 50%;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-.right button {
-    margin-left: 10px; /* ルールボタンとリセットボタンの間隔を設定 */
+.popup {
+    display: none;
+    position: fixed;
+    top: 15%;
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    color: white;
+    background-image: url('https://www.yuu-diaryblog.com/wp-content/uploads/2017/10/space-background13.jpg');
+    background-size: cover;
+    background-position: center;
+    overflow-y: auto;
 }
 
+.popup h1, .popup h2, .popup p {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+}
 
-        .popup {
-            display: none;
-            position: fixed;
-            top: 15%;
-            left: 15%;
-            width: 70%;
-            height: 70%;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            color: white;
-            background-image: url('https://www.yuu-diaryblog.com/wp-content/uploads/2017/10/space-background13.jpg');
-            background-size: cover;
-            background-position: center;
-            overflow-y: auto;
-        }
-        .container1 h1, h2, p {
-            position: relative;
-    
-            padding: 10px;
-        }
-        .container1 h1::before, h2::before, p::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        .popup h2 {
-            margin-top: 0;
-        }
-        .buttons {
-            display: flex;
-            justify-content: space-between; /* Change from flex-end to space-between */
-            margin-top: 20px;
-        }
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 500;
-        }
-        #rulesButton, #urlButton, #resetButton {
-            padding: 10px 20px;
-            border-radius: 50%;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    padding: 10px;
+    border: none;
+    color: white;
+}
 
-        .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 10px;
-            border: none;
-            color: white;
-        }
-        .close-button:hover {
-            color: #ccc;
-        }
-       
-        
-        
-        .popup .center-button {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .skill-popup {
-            display: none;
-            position: fixed;
-            top: 15%;
-            left: 15%;
-            width: 70%;
-            height: 70%;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            color: white;
-            background-image: url('https://www.yuu-diaryblog.com/wp-content/uploads/2017/10/space-background13.jpg');
-            background-size: cover;
-            background-position: center;
-            overflow-y: auto;
-        }
-        .skill-popup h2 {
-            margin-top: 0;
-        }
-        .skill-popup .buttons {
-            display: flex;
-            justify-content: space-between; /* Change from flex-end to space-between */
-            margin-top: 20px;
-        }
-        .icon-button {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            outline: none;
-            padding: 0;
-        }
-        .icon-button svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-        .icon-button svg:hover {
-            fill: #ccc;
-        }
+.close-button:hover {
+    color: #ccc;
+}
+
+.center-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.overlay.active, .popup.active {
+    display: block;
+}
+
