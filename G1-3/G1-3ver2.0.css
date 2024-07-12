@@ -6,6 +6,7 @@
    transform: translateX(-50%);
    width: 100%; /* 幅を100%に設定 */
    text-align: center;
+   z-index: 100; /* テキストが星の上に表示されるようにするための設定 */
 }
 
 .namebox {
@@ -21,18 +22,19 @@ body {
    display: flex;
    justify-content: center;
    align-items: center;
-   height: 100vh;
+   min-height: 100vh; /* ページ全体を画面に合わせる */
+   margin: 0; /* デフォルトのマージンを削除 */
    background-color: #f5f5f5;
    font-family: Arial, sans-serif;
 }
 
 .container {
+   margin: AUTO;
    display: flex;
-   justify-content: space-between; /* 赤、ルール、青の間に均等なスペースを配置 */
+   justify-content: space-between;
    width: 80%;
+   margin-top: 120px; /* 上部のマージンを追加 */
 }
-
-
 
 .team-box {
    width: 30%;
@@ -85,7 +87,6 @@ body {
    background-color: white;
    border-radius: 10px;
    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-   margin-left: 20px;
 }
 
 .info-box h1 {
@@ -109,4 +110,38 @@ body {
 
 .role-button:hover {
    background-color: #e0e0e0;
+}
+
+.stars {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-image: linear-gradient(0deg, #00dedc, #115d89, #080f1c);
+   overflow: hidden;
+}
+
+.star {
+   position: absolute;
+   display: block;
+   background-color: #fff;
+   border-radius: 50%;
+   box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.2);
+   opacity: 0;
+   animation: twinkle 5s infinite;
+}
+
+@keyframes twinkle {
+   0% {
+       opacity: 0;
+   }
+   50% {
+       transform: scale(1.1);
+       opacity: 1;
+   }
+   100% {
+       opacity: 0;
+       transform: scale(1);
+   }
 }
