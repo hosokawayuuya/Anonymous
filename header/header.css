@@ -15,11 +15,17 @@ header {
 nav h5 {
     margin: 0;
     color: rgb(255, 252, 252);
+    padding-left: 140px;
+    font-size: 20px; /* 文字の大きさを指定 */
 }
+
 
 .nav-buttons {
     display: flex;
     gap: 10px;
+    position: absolute; 
+    right: 50px; 
+    top: 10px; 
 }
 
 .nav-buttons button {
@@ -90,4 +96,3 @@ nav h5 {
 .overlay.active, .popup.active {
     display: block;
 }
-

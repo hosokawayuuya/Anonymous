@@ -8,7 +8,7 @@ $userCount = $_SESSION['user_count'] ?? 0;
     <nav>
         <h5>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h5>
         <div class="nav-buttons">
-            <button id="urlButton" onclick="togglePopup('urlPopup')">URL</button>
+            <button id="urlButton" onclick="togglePopup('urlPopup')">U R L</button>
             <button id="rulesButton" onclick="togglePopup('rulesPopup')">ルール</button>
             <button id="resetButton" onclick="resetGame()">リセット</button>
         </div>
@@ -29,7 +29,7 @@ $userCount = $_SESSION['user_count'] ?? 0;
     <div>
         <p>URL: <span id="websiteUrl"></span></p>
         <div class="center-button">
-            <button onclick="copyUrl()">URLをコピー</button>
+            <button onclick="copyUrl()">URLコピー</button>
         </div>
     </div>
     <span class="close-button" onclick="closePopup('urlPopup')">×</span>
