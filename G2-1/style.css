@@ -5,15 +5,8 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
-    padding-top: 70px; /* ヘッダーの高さ分の余白を追加 */
 }
 
-.container {
-    width: 100%;
-    display: flex;
-    justify-content: space-between; /* コンテナ内の要素を左右に分ける */
-    padding: 20px;
-}
 
 .main-content {
     flex: 1;
@@ -36,7 +29,7 @@ body {
 
 .card {
     width: 100px;
-    height: 100px;
+    height: 90px;
     display: inline-block;
     margin: 5px;
     text-align: center;
@@ -108,6 +101,9 @@ body {
     padding: 20px;
     background: white;
     border: 1px solid black;
+    position: relative;
+    top:250px;
+    right: 250px;
 }
 
 /*ヘッダーのcss*/
@@ -204,3 +200,95 @@ nav h5 {
     display: block;
 }
 
+
+
+
+.red-team {
+    background-color: #ff4c4c;
+ }
+ 
+ .blue-team {
+    background-color: #4c4cff;
+ }
+ /* G1-3ver2.0.css */
+.Name {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 100%; /* 幅を100%に設定 */
+    text-align: center;
+    z-index: 100; /* テキストが星の上に表示されるようにするための設定 */
+ }
+ 
+ .namebox {
+    text-align: center;
+    display: inline-block; /* インラインブロック要素に変更 */
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+ }
+
+ .container {
+    margin: AUTO;
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin-top: 90px; /* 上部のマージンを追加 */
+ }
+ 
+ .team-box {
+    width: 30%;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    height: 250px;
+    width:  200px;
+ }
+ 
+ .red-team {
+    background-color: #ff4c4c;
+ }
+ 
+ .blue-team {
+    background-color: #4c4cff;
+ }
+ 
+ .photo-container {
+    position: relative;
+    text-align: center;
+ }
+ 
+ .team-photo {
+    width: 70%;
+    border-radius: 10px;
+    position: relative;
+    left: 40px;
+ }
+ 
+ /* .number {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.2em;
+ } */
+ 
+ /* 追加 */
+
+ html,body {
+    overflow: hidden;
+  }
+.log {
+    position: relative;
+    left: 495px;
+    top: -290px;
+}
