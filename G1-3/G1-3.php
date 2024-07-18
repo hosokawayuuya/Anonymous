@@ -113,6 +113,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
     </style>
 </head>
 <body>
+<?php require '../header/header.php';?>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     window.addEventListener("DOMContentLoaded", () => {
@@ -290,14 +291,21 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         </div>
     
         <div class="info-box">
+            <h1>ルール</h1>
+            <h2>ゲームの基本設定</h2>
+        <p>チーム分け：プレイヤーは2つのチーム（赤チームと青チーム）に分かれます。それぞれのチームには1人のオペレーターと数人のアストロノーツがいます。
+        <br>
+        <br>
+        <br>
+
+        カード配置：25枚のカードが5x5のグリッドに配置されます。それぞれのカードには1つの単語が書かれています。</p>
         <button id="startGame" style="display: none;">ゲームスタート</button>
         </div>
-    
         <div class="team-box blue-team">
             <h2>青チーム</h2>
             <div class="photo-container">
                 <img src="../img/blueteam.png" alt="青チーム写真" class="team-photo">
-                <span class="number">9</span>
+                <span class="number">8</span>
             </div>
             <div class="team-info">
                 <button class="role-button" data-team-id="2" data-role-id="1">オペレーター</button>
