@@ -87,101 +87,6 @@ function getRandomImage($color) {
     <meta charset="UTF-8">
     <title>Anonymous Game</title>
     <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <?php require '../header/header.php'; ?>
-    <div class="container">
-        <div class="main-content">
-            <div class="counts">
-                <div>赤チーム: <span id="red-count"><?php echo $red_count; ?></span></div>
-                <div id="current-team-role"><?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?></div>
-                <div>青チーム: <span id="blue-count"><?php echo $blue_count; ?></span></div>
-            </div>
-            <div id="game-board">
-                <?php
-                $cards_per_row = 5;
-                $total_cards = count($board);
-
-                for ($i = 0; $i < $total_cards; $i += $cards_per_row) {
-                    echo '<div class="row">';
-                    for ($j = 0; $j < $cards_per_row; $j++) {
-                        if ($i + $j < $total_cards) {
-                            $card = $board[$i + $j];
-                            if ($card['state_ID'] == 1) {
-                                $background_image = getRandomImage($card['color']);
-                                echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-image: url(../img/' . $background_image . ');"></div>';
-                            } else {
-                                $background_color = $is_astronaut ? 'gray' : $card['color'];
-                                echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-color: ' . $background_color . ';">' . $card['card_name'] . '</div>';
-                            }
-                        }
-                    }
-                    echo '</div>';
-                }
-                ?>
-            </div>
-            <?php if ($is_current_turn && $role_id == 1): ?>
-            <div class="hint-input">
-                <form id="hint-form">
-                    <label for="hint">ヒント:</label>
-                    <input type="text" id="hint" name="hint" required>
-                    <label for="hint-count">枚数:</label>
-                    <select id="hint-count" name="hint-count" required>
-                        <?php for ($i = 1; $i <= 9; $i++): ?>
-                            <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <button type="submit">送信</button>
-                </form>
-            </div>
-            <?php elseif ($is_current_turn && $role_id == 2): ?>
-            <div class="hint-display">
-                <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
-                <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
-                <button id="end-turn">推測終了</button>
-            </div>
-            <?php else: ?>
-            <p>現在のターンではありません。待機してください。</p>
-            <?php endif; ?>
-        </div>
-        <div class="log">
-            <h3>宇宙遊泳記録</h3>
-            <table id="log-table">
-                <thead>
-                    <tr>
-                        <th>チーム</th>
-                        <th>ヒント</th>
-                        <th>枚数</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $stmt = $pdo->prepare("SELECT t.team_name, l.hint, l.sheet FROM Log l JOIN User u ON l.user_ID = u.user_ID JOIN Team t ON u.team_ID = t.team_ID WHERE l.room_ID = ? ORDER BY l.log_ID DESC");
-                    $stmt->execute([$room_id]);
-                    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                    foreach ($logs as $log) {
-                        echo '<tr>';
-                        echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
-                        echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
-                        echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
-                        echo '</tr>';
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="overlay" id="overlay"></div>
-    <div class="popup" id="flip-popup">
-        <p>カードをめくりますか？</p>
-        <button id="confirm-flip">はい</button>
-        <button id="cancel-flip">いいえ</button>
-    </div>
-    <div class="popup" id="win-popup">
-        <p id="win-message"></p>
-        <button id="return-to-room">ルーム作成に戻る</button>
-    </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
@@ -342,5 +247,115 @@ function getRandomImage($color) {
             }
         });
     </script>
+</head>
+<body>
+<div class="container">
+    <div class="team-box red-team">
+        <div class="photo-container">
+            <img src="../img/universe3.jpg" alt="赤チーム写真" class="team-photo">
+            <span class="number">9</span>
+        </div>
+        <div class="team-info">
+            <p>オペレーター</p>
+            <br>
+            <p>アストロノーツ</p>
+        </div>
+    </div>
+
+    <div id="game-board">
+        <?php
+        $cards_per_row = 5;
+        $total_cards = count($board);
+
+        for ($i = 0; $i < $total_cards; $i += $cards_per_row) {
+            echo '<div class="row">';
+            for ($j = 0; $j < $cards_per_row; $j++) {
+                if ($i + $j < $total_cards) {
+                    $card = $board[$i + $j];
+                    if ($card['state_ID'] == 1) {
+                        $background_image = getRandomImage($card['color']);
+                        echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-image: url(../img/' . $background_image . ');"></div>';
+                    } else {
+                        $background_color = $is_astronaut ? 'gray' : $card['color'];
+                        echo '<div class="card" data-card-id="' . $card['board_ID'] . '" style="background-color: ' . $background_color . ';">' . $card['card_name'] . '</div>';
+                    }
+                }
+            }
+            echo '</div>';
+        }
+        ?>
+    </div>
+
+    <div class="team-box blue-team">
+        <div class="photo-container">
+            <img src="../img/universe4.jpg" alt="青チーム写真" class="team-photo">
+        </div>
+        <div class="team-info">
+            <p>オペレーター</p>
+            <br>
+            <p>アストロノーツ</p>
+        </div>
+    </div>
+</div>
+    <?php if ($is_current_turn && $role_id == 1): ?>
+        <div class="hint-input">
+            <form id="hint-form">
+                <label for="hint">ヒント:</label>
+                <input type="text" id="hint" name="hint" required>
+                <label for="hint-count">枚数:</label>
+                <select id="hint-count" name="hint-count" required>
+                    <?php for ($i = 1; $i <= 9; $i++): ?>
+                        <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                    <?php endfor; ?>
+                </select>
+                <button type="submit">送信</button>
+            </form>
+        </div>
+    <?php elseif ($is_current_turn && $role_id == 2): ?>
+        <div class="hint-display">
+            <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
+            <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
+            <button id="end-turn">推測終了</button>
+        </div>
+    <?php else: ?>
+        <p>現在のターンではありません。待機してください。</p>
+    <?php endif; ?>
+    <div class="log">
+        <h3>宇宙遊泳記録</h3>
+        <table id="log-table">
+            <thead>
+                <tr>
+                    <th>チーム</th>
+                    <th>ヒント</th>
+                    <th>枚数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $stmt = $pdo->prepare("SELECT t.team_name, l.hint, l.sheet FROM Log l JOIN User u ON l.user_ID = u.user_ID JOIN Team t ON u.team_ID = t.team_ID WHERE l.room_ID = ? ORDER BY l.log_ID DESC");
+                $stmt->execute([$room_id]);
+                $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($logs as $log) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
+                    echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
+                    echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
+                    echo '</tr>';
+                    }
+                ?>
+            </tbody>
+        </table>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="flip-popup">
+        <p>カードをめくりますか？</p>
+        <button id="confirm-flip">はい</button>
+        <button id="cancel-flip">いいえ</button>
+    </div>
+    <div class="popup" id="win-popup">
+        <p id="win-message"></p>
+        <button id="return-to-room">ルーム作成に戻る</button>
+    </div>
 </body>
 </html>
