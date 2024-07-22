@@ -29,7 +29,7 @@ $userCount = $_SESSION['user_count'] ?? 0;
     <div>
         <p>URL: <span id="websiteUrl"></span></p>
         <div class="center-button">
-            <button onclick="copyUrl()">URLコピー</button>
+            <button onclick="copyUrl()" class="Button-style">URLコピー</button>
         </div>
     </div>
     <span class="close-button" onclick="closePopup('urlPopup')">×</span>

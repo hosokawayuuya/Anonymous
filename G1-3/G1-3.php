@@ -262,11 +262,11 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
         <div class="namebox">
             <?php if (!$is_host && empty($nickname)) { ?>
                 <form method="post" action="">
-                <input type="hidden" name="room_key" value="<?php echo htmlspecialchars($room_key); ?>">
+                    <input type="hidden" name="room_key" value="<?php echo htmlspecialchars($room_key); ?>">
                     <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room_id); ?>">
                     <label for="nickname">ニックネーム:</label>
                     <input type="text" id="nickname" name="nickname" required>
-                    <button type="submit">参加</button>
+                    <button type="submit" class="Button-style">参加</button>
                 </form>
             <?php } else {
                 echo "<p>参加者: $nickname</p>";
