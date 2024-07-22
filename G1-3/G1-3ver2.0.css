@@ -1,4 +1,25 @@
-/* G1-3ver2.0.css */
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Onest', sans-serif;
+}
+
+:root {
+  --color-white: #fff;
+  --color-1: #350048;
+  --color-2: rgba(255, 255, 255, 0.05);
+  --color-3: rgba(0, 0, 0, 0.2);
+  --color-4: rgba(255, 255, 255, 0.1);
+  --color-gradient-1: rgba(255, 255, 255, 0.15);
+  --red-color: #ff4c4c;
+  --blue-color: #4c4cff;
+  --button-hover: rgba(255, 255, 255, 0.2);
+  --button-shadow: 0 0 5px;
+}
+
 .Name {
    position: fixed;
    left: 50%;
@@ -46,11 +67,11 @@ body {
 }
 
 .red-team {
-   background-color: #ff4c4c;
+   background-color: var(--red-color);
 }
 
 .blue-team {
-   background-color: #4c4cff;
+   background-color: var(--blue-color);
 }
 
 .photo-container {
@@ -112,7 +133,6 @@ body {
    position: relative; /* 相対位置を設定 */
 }
 
-
 .info-box button {
    display: block; /* ボタンをブロック要素にする */
    margin: 0 auto; /* ボタンを中央に配置 */
@@ -131,7 +151,6 @@ body {
 .info-box button:hover {
    background-color: #0056b3; /* ホバー時の背景色を設定 */
 }
-
 
 .stars {
    position: absolute;
@@ -167,29 +186,110 @@ body {
    }
 }
 
+/* Red and Blue Buttons */
 .role-button {
-   -webkit-transform: skew(-15deg);
-   transform: skew(-15deg);
-   color: #fff;
-   border-radius: 0;
-   background-image: -webkit-gradient(linear, left top, right top, from(#2af598), to(#009efd));
-   background-image: -webkit-linear-gradient(left, #2af598 0%, #009efd 100%);
-   background-image: linear-gradient(90deg, #2af598 0%, #009efd 100%);
-   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
-   box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
-   font-size: 1em; /* ボタンのテキストサイズを大きくする */
-   padding: 10px 20px; /* ボタンのパディングを大きくする */
+  position: relative;
+  width: 155px;
+  height: 50px;
+  margin: 10px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-white);
+  z-index: 1;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-decoration: none;
+  overflow: hidden;
+  transition: 0.8s;
+  backdrop-filter: blur(15px);
+  border-radius: 30px;
+  border-top: 1px solid var(--color-4);
+  border-bottom: 1px solid var(--color-4);
+  background: var(--color-2);
+  box-shadow: 0 15px 35px var(--color-3);
 }
 
 .role-button:hover {
-   -webkit-transform: skew(0);
-   transform: skew(0);
-   color: #fff;
-   -webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, .1);
-   box-shadow: 0 2px 3px rgba(0, 0, 0, .1);
+  letter-spacing: 3px;
 }
 
- 
+.role-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to left, var(--button-hover), transparent);
+  transform: skewX(45deg) translateX(0);
+  transition: 0.8s;
+}
 
+.role-button:hover::before {
+  transform: skewX(45deg) translateX(200%);
+}
 
+.role-button::before,
+.role-button::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 10px;
+  border-radius: 10px;
+  transition: 0.8s;
+  transition-delay: 0s;
+}
 
+.role-button:hover::before,
+.role-button:hover::after {
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
+  transition-delay: 0.5s;
+}
+
+.role-button::before {
+  bottom: -5px;
+}
+
+.role-button::after {
+  top: -5px;
+}
+
+/* Specific Color for Red Button */
+.red-button::before,
+.red-button::after {
+  background: var(--red-color);
+  box-shadow: var(--button-shadow) var(--red-color);
+}
+
+/* Specific Color for Blue Button */
+.blue-button::before,
+.blue-button::after {
+  background: var(--blue-color);
+  box-shadow: var(--button-shadow) var(--blue-color);
+}
+
+/*参加ボタンのcss*/
+@import url('https://fonts.googleapis.com/css2?family=Modak&display=swap');
+
+.Button-style {
+  font-family: "Modak", cursive;
+  font-size: 15px;
+  display: inline-block;
+  padding: 0.2em 1em 0.1em;
+  color: #ff0066;
+  border: solid 2px #ff0066;
+  border-radius: 5px;
+  background-color: #fff0f8;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s; /* アニメーションの追加 */
+}
+
+.Button-style:hover {
+  background-color: #ff0066;
+  color: #fff0f8;
+}
