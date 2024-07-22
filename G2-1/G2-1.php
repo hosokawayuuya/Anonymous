@@ -139,163 +139,171 @@ foreach ($users as $user) {
     <link rel="stylesheet" href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        $(document).ready(function() {
-            let selectedCardId = null;
-            let gameEnded = false;
-            let isMyTurn = <?php echo json_encode($is_current_turn); ?>; // 自分のターンかどうかのフラグ
+     $(document).ready(function() {
+    let selectedCardId = null;
+    let gameEnded = false;
+    let isMyTurn = <?php echo json_encode($is_current_turn); ?>; // 自分のターンかどうかのフラグ
 
-            function attachCardClickHandlers() {
-                if (gameEnded) return; // ゲーム終了後は操作を無効にする
-                $('.card').off('click').on('click', function() {
-                    <?php if ($is_current_turn && $role_id == 2): ?>
-                        selectedCardId = $(this).data('card-id');
-                        $('#overlay').addClass('active');
-                        $('#flip-popup').addClass('active');
-                    <?php else: ?>
-                        alert('あなたの役割ではカードをめくることはできません');
-                    <?php endif; ?>
-                });
-            }
+    function attachCardClickHandlers() {
+        if (gameEnded) return; // ゲーム終了後は操作を無効にする
+        $('.card').off('click').on('click', function() {
+            <?php if ($is_current_turn && $role_id == 2): ?>
+                selectedCardId = $(this).data('card-id');
+                $('#overlay').addClass('active');
+                $('#flip-popup').addClass('active');
+            <?php else: ?>
+                alert('あなたの役割ではカードをめくることはできません');
+            <?php endif; ?>
+        });
+    }
 
-            attachCardClickHandlers();
+    attachCardClickHandlers();
 
-            $('#confirm-flip').click(function() {
-                if (selectedCardId) {
-                    $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
-                        if (response.status === 'success') {
-                            updateBoard();
-                            if (response.reload) {
-                                location.reload(); // カードをめくった直後にページをリロード
-                            }
-                        } else if (response.status === 'win') {
-                            gameEnded = true;
-                            $('#win-message').text(response.message);
-                            $('#flip-popup').hide();
-                            $('#win-popup').show();
-                            $('#overlay').show(); // 勝利時のポップアップを表示
-                        } else {
-                            alert(response.message);
-                        }
-                        $('#overlay').removeClass('active');
-                        $('#flip-popup').removeClass('active');
-                    }, 'json');
+    $('#confirm-flip').click(function() {
+        if (selectedCardId) {
+            $.post('flip_card.php', {card_id: selectedCardId, room_id: '<?php echo $room_id; ?>'}, function(response) {
+                if (response.status === 'success') {
+                    updateBoard();
+                    if (response.reload) {
+                        location.reload(); // カードをめくった直後にページをリロード
+                    }
+                } else if (response.status === 'win') {
+                    gameEnded = true;
+                    $('#win-message').text(response.message);
+                    $('#flip-popup').hide();
+                    $('#win-popup').show();
+                    $('#overlay').show(); // 勝利時のポップアップを表示
+                } else {
+                    alert(response.message);
                 }
-            });
-
-            $('#cancel-flip').click(function() {
                 $('#overlay').removeClass('active');
                 $('#flip-popup').removeClass('active');
-            });
+            }, 'json');
+        }
+    });
 
-            $('#return-to-room').click(function() {
-                window.location.href = '../G1-2/G1-2.php'; // ルーム作成に戻る
-            });
+    $('#cancel-flip').click(function() {
+        $('#overlay').removeClass('active');
+        $('#flip-popup').removeClass('active');
+    });
 
-            $('#hint-form').submit(function(e) {
-                e.preventDefault();
-                const hint = $('#hint').val();
-                const hintCount = $('#hint-count').val();
-                $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
-                    if (response.status === 'success') {
-                        updateBoard();
-                        location.reload(); // ヒントを送信した直後にページをリロード
-                    } else {
-                        alert(response.message);
-                    }
-                }, 'json');
-            });
+    $('#return-to-room').click(function() {
+        window.location.href = '../G1-2/G1-2.php'; // ルーム作成に戻る
+    });
 
-            $('#end-turn').click(function() {
-                $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-                    if (response.status === 'success') {
-                        isMyTurn = false; // 自分のターンが終わる
-                        updateBoard();
-                        location.reload(); // 自身のターンが終わった直後にページをリロード
-                    } else {
-                        alert(response.message);
-                    }
-                }, 'json');
-            });
+    $('#hint-form').submit(function(e) {
+        e.preventDefault();
+        const hint = $('#hint').val();
+        const hintCount = $('#hint-count').val();
+        const errorMessage = $('#error-message');
+        
+        if (hint.length > 10) {
+            errorMessage.text('ヒントは10文字以内で入力してください。').show();
+        } else {
+            errorMessage.hide();
+            $.post('submit_hint.php', {room_id: '<?php echo $room_id; ?>', hint: hint, hint_count: hintCount}, function(response) {
+                if (response.status === 'success') {
+                    updateBoard();
+                    location.reload(); // ヒントを送信した直後にページをリロード
+                } else {
+                    alert(response.message);
+                }
+            }, 'json');
+        }
+    });
 
-            function updateBoard() {
-                if (isMyTurn) return; // 自分のターンなら更新をスキップ
-
-                $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-                    console.log('Board response:', response); // デバッグログ追加
-                    if (response.status === 'success') {
-                        $('#game-board').html(response.board);
-                        $('#red-count').text(response.red_count);
-                        $('#blue-count').text(response.blue_count);
-                        attachCardClickHandlers();
-                    } else {
-                        console.error(response.message);
-                    }
-                }, 'json');
-
-                $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-                    console.log('Game state response:', response); // デバッグログ追加
-                    if (response.status === 'success') {
-                        // ターンが切り替わったらページをリロード
-                        if (!isMyTurn && response.game_state.current_team == <?php echo json_encode($team_id); ?> && response.game_state.current_role == <?php echo json_encode($role_id); ?>) {
-                            location.reload();
-                        }
-                        // 現在のチーム・役割のUIを更新
-                        $('#current-team-role').text((response.game_state.current_team == 1 ? '赤' : '青') + 'チームの' + (response.game_state.current_role == 1 ? 'オペレーター' : 'アストロノーツ'));
-                        // ゲームのログを更新
-                        updateLog();
-                    } else {
-                        console.error(response.message);
-                    }
-                }, 'json');
+    $('#end-turn').click(function() {
+        $.post('end_turn.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            if (response.status === 'success') {
+                isMyTurn = false; // 自分のターンが終わる
+                updateBoard();
+                location.reload(); // 自身のターンが終わった直後にページをリロード
+            } else {
+                alert(response.message);
             }
+        }, 'json');
+    });
 
-            function updateLog() {
-                $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-                    if (response.status === 'success') {
-                        let logHtml = '';
-                        response.logs.forEach(log => {
-                            logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
-                        });
-                        $('#log-table tbody').html(logHtml);
-                    } else {
-                        console.error(response.message);
-                    }
-                }, 'json');
+    function updateBoard() {
+        if (isMyTurn) return; // 自分のターンなら更新をスキップ
+
+        $.get('get_board.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            console.log('Board response:', response); // デバッグログ追加
+            if (response.status === 'success') {
+                $('#game-board').html(response.board);
+                $('#red-count').text(response.red_count);
+                $('#blue-count').text(response.blue_count);
+                attachCardClickHandlers();
+            } else {
+                console.error(response.message);
             }
+        }, 'json');
 
-            function escapeHtml(string) {
-                return String(string).replace(/[&<>"'`=\/]/g, function (s) {
-                    return {
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;',
-                        '"': '&quot;',
-                        "'": '&#39;',
-                        '/': '&#x2F;',
-                        '=': '&#x3D;',
-                        '`': '&#x60;'
-                    }[s];
+        $.get('get_game_state.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            console.log('Game state response:', response); // デバッグログ追加
+            if (response.status === 'success') {
+                // ターンが切り替わったらページをリロード
+                if (!isMyTurn && response.game_state.current_team == <?php echo json_encode($team_id); ?> && response.game_state.current_role == <?php echo json_encode($role_id); ?>) {
+                    location.reload();
+                }
+                // 現在のチーム・役割のUIを更新
+                $('#current-team-role').text((response.game_state.current_team == 1 ? '赤' : '青') + 'チームの' + (response.game_state.current_role == 1 ? 'オペレーター' : 'アストロノーツ'));
+                // ゲームのログを更新
+                updateLog();
+            } else {
+                console.error(response.message);
+            }
+        }, 'json');
+    }
+
+    function updateLog() {
+        $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            if (response.status === 'success') {
+                let logHtml = '';
+                response.logs.forEach(log => {
+                    logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
                 });
+                $('#log-table tbody').html(logHtml);
+            } else {
+                console.error(response.message);
             }
+        }, 'json');
+    }
 
-            // 定期的に更新を確認する
-            setInterval(updateBoard, 500);
-
-            // 勝利チェックを定期的に行う
-            setInterval(checkWin, 1000);
-
-            function checkWin() {
-                $.get('win_check.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
-                    if (response.status === 'win') {
-                        gameEnded = true;
-                        $('#win-message').text(response.message);
-                        $('#flip-popup').hide();
-                        $('#win-popup').show();
-                        $('#overlay').show(); // 勝利時のポップアップを表示
-                    }
-                }, 'json');
-            }
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+                '/': '&#x2F;',
+                '=': '&#x3D;',
+                '`': '&#x60;'
+            }[s];
         });
+    }
+
+    // 定期的に更新を確認する
+    setInterval(updateBoard, 500);
+
+    // 勝利チェックを定期的に行う
+    setInterval(checkWin, 1000);
+
+    function checkWin() {
+        $.get('win_check.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
+            if (response.status === 'win') {
+                gameEnded = true;
+                $('#win-message').text(response.message);
+                $('#flip-popup').hide();
+                $('#win-popup').show();
+                $('#overlay').show(); // 勝利時のポップアップを表示
+            }
+        }, 'json');
+    }
+});
+
     </script>
 </head>
 <body>
@@ -305,9 +313,9 @@ foreach ($users as $user) {
         <div class="container">
            <div class="team-box red-team">
                 <div class="photo-container">
-                    <img src="../img/redteam.png" alt="赤チーム写真" class="team-photo">
-                    <span class="number">9</span>
-                </div>
+                    <img src="../img/redteam.png" alt="赤チーム写真" class="ateam-photo"></div>
+                <div class="rno-counts"> 
+                    <span id="red-count"><?php echo $red_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
                     <div><?php echo $red_operator_names_str; ?></div>
@@ -343,54 +351,63 @@ foreach ($users as $user) {
 
             <div class="team-box blue-team">
                 <div class="photo-container">
-                    <img src="../img/blueteam.png" alt="青チーム写真" class="team-photo">
-                </div>
+                    <img src="../img/blueteam.png" alt="青チーム写真" class="bteam-photo"></div>
+                <div class="bno-counts">  
+                    <span id="blue-count"><?php echo $blue_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
-                    <div><?php echo $blue_operator_names_str; ?></div>
+                <div><?php echo $blue_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
-                    <div><?php echo $blue_astronaut_names_str; ?></div>
+                <div><?php echo $blue_astronaut_names_str; ?></div>
                 </div>
             </div>
         </div>
         <div class="hint">
-            <?php if ($is_current_turn && $role_id == 1): ?>
-                <div class="hint-input">
-                    <form id="hint-form">
-                        <label for="hint">ヒント:</label>
-                        <input type="text" id="hint" name="hint" required maxlength="6">
-                        <label for="hint-count">枚数:</label>
-                        <select id="hint-count" name="hint-count" required>
-                            <?php for ($i = 1; $i <= 9; $i++): ?>
-                                <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
-                            <?php endfor; ?>
-                        </select>
-                        <button type="submit">送信</button>
-                    </form>
-                </div>
-            <?php elseif ($is_current_turn && $role_id == 2): ?>
-                <div class="hint-display">
-                    <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
-                    <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
-                    <button id="end-turn">推測終了</button>
-                </div>
-            <?php else: ?>
-                <p>現在のターンではありません。待機してください。</p>
-            <?php endif; ?>
-    
-            <div id="overlay" class="overlay"></div>
-            <div id="flip-popup" class="flippopup">
-                <p>カードをめくりますか？</p>
-                <button id="confirm-flip">はい</button>
-                <button id="cancel-flip">いいえ</button>
-            </div>
- 
-            <div class="popup" id="win-popup">
-                <p id="win-message"></p>
-                <button id="return-to-room">ルーム作成に戻る</button>
-            </div>
+    <?php if ($is_current_turn && $role_id == 1): ?>
+        <div class="hint-input">
+            <form id="hint-form">
+                <label for="hint">ヒント:</label>
+                <input type="text" id="hint" name="hint">
+                <label for="hint-count">枚数:</label>
+                <select id="hint-count" name="hint-count" required>
+                    <?php for ($i = 1; $i <= 9; $i++): ?>
+                        <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
+                    <?php endfor; ?>
+                </select>
+                <button type="submit">送信</button>
+                <p id="error-message">ヒントは10文字以内で入力してください。</p>
+
+            </form>
         </div>
+
+    <?php elseif ($is_current_turn && $role_id == 2): ?>
+        <div class="hint-display">
+            <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
+            <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
+            <button id="end-turn">推測終了</button>
+        </div>
+    <?php else: ?>
+        <p>現在のターンではありません。待機してください。</p>
+    <?php endif; ?>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="flip-popup" class="flippopup">
+        <p>カードをめくりますか？</p>
+        <button id="confirm-flip">はい</button>
+        <button id="cancel-flip">いいえ</button>
+    </div>
+
+    <div class="popup" id="win-popup">
+        <p id="win-message"></p>
+        <button id="return-to-room">ルーム作成に戻る</button>
+    </div>
+</div>
+
+        <div class="main-content">
+            <div class="counts">
+                <div id="current-team-role"><?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?></div>
+            </div>
         <li></li>
             <li></li>
             <li></li>

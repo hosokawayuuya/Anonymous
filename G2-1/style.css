@@ -170,13 +170,19 @@ body {
     text-align: center;
  }
  
- .team-photo {
+ .ateam-photo {
+    width: 70%;
+    border-radius: 10px;
+    position: relative;
+    right: 40px;
+ }
+ 
+ .bteam-photo {
     width: 70%;
     border-radius: 10px;
     position: relative;
     left: 40px;
  }
- 
  /* .number {
     position: absolute;
     top: 10px;
@@ -430,4 +436,26 @@ body {
 
 .hint {
     text-align: center;
+}
+
+.rno-counts {
+    position: fixed;
+    left: 330px;
+    top: 120px;
+    font-size: 40px; /* ここで文字サイズを指定 */
+    font-weight: bold; /* 太字にする場合 */
+
+}
+
+.bno-counts {
+    position: fixed;
+    right: 330px;
+    top: 120px;
+    font-size: 40px; /* ここで文字サイズを指定 */
+    font-weight: bold; /* 太字にする場合 */
+}
+
+#error-message {
+    color: black; /* テキスト色を白に設定 */
+    display: none; /* デフォルトで非表示 */
 }
