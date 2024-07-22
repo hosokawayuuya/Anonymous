@@ -12,10 +12,11 @@
 .namebox {
    text-align: center;
    display: inline-block; /* インラインブロック要素に変更 */
-   background-color: #f0f0f0;
+   background-color: #2d73c2;
    padding: 10px;
    border-radius: 5px;
    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+   color: #ffffff; /* 文字色を白に設定 */
 }
 
 body {
@@ -33,7 +34,7 @@ body {
    display: flex;
    justify-content: space-between;
    width: 80%;
-   margin-top: 120px; /* 上部のマージンを追加 */
+   margin-top: 90px; /* 上部のマージンを追加 */
 }
 
 .team-box {
@@ -92,26 +93,45 @@ body {
 
 .info-box h1 {
    margin-bottom: 20px;
+   margin-left: 150px;
+}
+.info-box h2 {
+   margin-left: 100px;
 }
 
-.role-buttons {
-   display: flex;
-   flex-direction: column;
-   gap: 10px;
-   margin-top: 20px;
+.info-box p {
+   border: 2px solid #000; /* 黒い枠を追加 */
+   padding: 10px; /* 内側の余白を追加 */
+   background-color: #f3f2f2; /* 背景色を白に設定 */
+   color: #0e0d0d; /* 文字色を白に設定 */
+   border-radius: 5px; /* 角を少し丸める */
+   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* 黒いシャドウを追加 */
 }
 
-.role-button {
-   padding: 10px;
-   border: 1px solid #ccc;
-   border-radius: 5px;
-   background-color: #f0f0f0;
-   cursor: pointer;
+.info-box {
+   position: relative; /* 相対位置を設定 */
 }
 
-.role-button:hover {
-   background-color: #e0e0e0;
+
+.info-box button {
+   display: block; /* ボタンをブロック要素にする */
+   margin: 0 auto; /* ボタンを中央に配置 */
+   padding: 10px 20px; /* パディングを追加 */
+   background-color: #007BFF; /* 背景色を設定 */
+   color: white; /* 文字色を設定 */
+   border: none; /* ボーダーを無しに設定 */
+   cursor: pointer; /* カーソルをポインターに変更 */
+   font-size: 16px; /* フォントサイズを設定 */
+   position: absolute; /* 絶対位置を設定 */
+   bottom: 100px; /* 下からの位置を設定 */
+   left: 50%; /* 左からの位置を設定 */
+   transform: translateX(-50%); /* 中央揃え */
 }
+
+.info-box button:hover {
+   background-color: #0056b3; /* ホバー時の背景色を設定 */
+}
+
 
 .stars {
    position: absolute;
@@ -146,3 +166,30 @@ body {
        transform: scale(1);
    }
 }
+
+.role-button {
+   -webkit-transform: skew(-15deg);
+   transform: skew(-15deg);
+   color: #fff;
+   border-radius: 0;
+   background-image: -webkit-gradient(linear, left top, right top, from(#2af598), to(#009efd));
+   background-image: -webkit-linear-gradient(left, #2af598 0%, #009efd 100%);
+   background-image: linear-gradient(90deg, #2af598 0%, #009efd 100%);
+   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+   box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+   font-size: 1em; /* ボタンのテキストサイズを大きくする */
+   padding: 10px 20px; /* ボタンのパディングを大きくする */
+}
+
+.role-button:hover {
+   -webkit-transform: skew(0);
+   transform: skew(0);
+   color: #fff;
+   -webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, .1);
+   box-shadow: 0 2px 3px rgba(0, 0, 0, .1);
+}
+
+ 
+
+
+
