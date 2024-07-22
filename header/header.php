@@ -8,9 +8,9 @@ $userCount = $_SESSION['user_count'] ?? 0;
     <nav>
         <h5>参加人数: <span id="userCount"><?php echo $userCount; ?></span></h5>
         <div class="nav-buttons">
-            <button id="urlButton" onclick="togglePopup('urlPopup')">U R L</button>
-            <button id="rulesButton" onclick="togglePopup('rulesPopup')">ルール</button>
-            <button id="resetButton" onclick="resetGame()">リセット</button>
+            <div class="btn"><a id="urlButton" href="#" onclick="togglePopup('urlPopup')">U R L</a></div>
+            <div class="btn"><a id="rulesButton" href="#" onclick="togglePopup('rulesPopup')">ルール</a></div>
+            <div class="btn"><a id="resetButton" href="#" onclick="resetGame()">リセット</a></div>
         </div>
     </nav>
 </header>
