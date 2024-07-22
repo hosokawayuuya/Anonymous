@@ -65,6 +65,8 @@ try {
     $userCount = $stmt->fetchColumn();
     $_SESSION['user_count'] = $userCount; // セッションに参加人数を保存
 
+    
+
 
 } catch (Exception $e) {
     echo 'エラー: ' . $e->getMessage();
@@ -99,15 +101,39 @@ $stmt = $pdo->prepare("
 $stmt->execute([$room_id]);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+// データベースからユーザー情報を取得
+$stmt = $pdo->prepare("SELECT user_name, team_ID, role_ID FROM User WHERE room_ID = ?");
+$stmt->execute([$room_id]);
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// 各チームと役割のユーザー名を格納する文字列変数の初期化
+$red_operator_names_str = "";
+$red_astronaut_names_str = "";
+$blue_operator_names_str = "";
+$blue_astronaut_names_str = "";
+
+// ユーザーの名前を条件に応じて文字列変数に追加
+foreach ($users as $user) {
+    if ($user['team_ID'] == 1 && $user['role_ID'] == 1) { // 赤チームのオペレーター
+        $red_operator_names_str .= htmlspecialchars($user['user_name'], ENT_QUOTES, 'UTF-8') . "<br>";
+    } else if ($user['team_ID'] == 1 && $user['role_ID'] == 2) { // 赤チームのアストロノーツ
+        $red_astronaut_names_str .= htmlspecialchars($user['user_name'], ENT_QUOTES, 'UTF-8') . "<br>";
+    } else if ($user['team_ID'] == 2 && $user['role_ID'] == 1) { // 青チームのオペレーター
+        $blue_operator_names_str .= htmlspecialchars($user['user_name'], ENT_QUOTES, 'UTF-8') . "<br>";
+    } else if ($user['team_ID'] == 2 && $user['role_ID'] == 2) { // 青チームのアストロノーツ
+        $blue_astronaut_names_str .= htmlspecialchars($user['user_name'], ENT_QUOTES, 'UTF-8') . "<br>";
+    }
+}
 ?>
-?>
+
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>Anonymous Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css?family=Exo:400,700" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Exo:400,700" rel="stylesheet">
     <link rel="stylesheet" href="../header/header.css">
     <link rel="stylesheet" href="style.css">
@@ -277,15 +303,17 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="area">
     <ul class="circles">
         <div class="container">
-            <div class="team-box red-team">
+           <div class="team-box red-team">
                 <div class="photo-container">
-                    <img src="../img/universe3.jpg" alt="赤チーム写真" class="team-photo">
+                    <img src="../img/redteam.png" alt="赤チーム写真" class="team-photo">
                     <span class="number">9</span>
                 </div>
                 <div class="team-info">
                     <p>オペレーター</p>
+                    <div><?php echo $red_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
+                    <div><?php echo $red_astronaut_names_str; ?></div>
                 </div>
             </div>
 
@@ -315,12 +343,14 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="team-box blue-team">
                 <div class="photo-container">
-                    <img src="../img/universe4.jpg" alt="青チーム写真" class="team-photo">
+                    <img src="../img/blueteam.png" alt="青チーム写真" class="team-photo">
                 </div>
                 <div class="team-info">
                     <p>オペレーター</p>
+                    <div><?php echo $blue_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
+                    <div><?php echo $blue_astronaut_names_str; ?></div>
                 </div>
             </div>
         </div>
@@ -329,7 +359,6 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="hint-input">
                     <form id="hint-form">
                         <label for="hint">ヒント:</label>
-                        <input type="text" id="hint" name="hint" required>
                         <input type="text" id="hint" name="hint" required maxlength="6">
                         <label for="hint-count">枚数:</label>
                         <select id="hint-count" name="hint-count" required>
@@ -350,12 +379,13 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <p>現在のターンではありません。待機してください。</p>
             <?php endif; ?>
     
-            <div class="overlay" id="overlay"></div>
-            <div class="popup" id="flip-popup">
+            <div id="overlay" class="overlay"></div>
+            <div id="flip-popup" class="flippopup">
                 <p>カードをめくりますか？</p>
                 <button id="confirm-flip">はい</button>
                 <button id="cancel-flip">いいえ</button>
             </div>
+ 
             <div class="popup" id="win-popup">
                 <p id="win-message"></p>
                 <button id="return-to-room">ルーム作成に戻る</button>
@@ -382,23 +412,30 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th>数</th>
                     </tr>
                 </thead>
-                <tbody>
-                        <?php
-                        foreach ($logs as $log) {
-                            // チームの色を取得
-                            $teamColor = $log['team_ID'] == 1 ? '#FF0000' : ($log['team_ID'] == 2 ? '#0000FF' : '#000000');
-                            // オペレーターの役割を取得
-                            $roleName = $log['role_ID'] == 1 ? 'オペレーター' : 'アストロノーツ';
-                            // オペレーターの名前をチームの色で表示
-                            echo '<tr>';
-                            echo '<td style="color: ' . $teamColor . ';">' . htmlspecialchars($roleName) . '</td>';
-                            echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
-                            echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
-                            echo '</tr>';
-                        }
-                        ?>
-                </tbody>
-            </table>
+            <tbody>
+                    <?php
+                    $stmt = $pdo->prepare("
+                    SELECT 
+                        u.user_name,  -- ユーザー名を取得
+                        l.hint, 
+                        l.sheet 
+                    FROM Log l 
+                    JOIN User u ON l.user_ID = u.user_ID 
+                    WHERE l.room_ID = ? 
+                    ORDER BY l.log_ID DESC
+                ");
+                    $stmt->execute([$room_id]);
+                    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+ 
+                    foreach ($logs as $log) {
+                        echo '<tr>';
+                        echo '<td>' . htmlspecialchars($log['user_name']) . '</td>';
+                        echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
+                        echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
+                        echo '</tr>';
+                    }
+                    ?>
+            </tbody>
         </div>
     </div> 
 </body>
