@@ -375,7 +375,7 @@ foreach ($users as $user) {
                         <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                     <?php endfor; ?>
                 </select>
-                <button type="submit">送信</button>
+                <button type="submit" class="Button-style">送信</button>
                 <p id="error-message">ヒントは10文字以内で入力してください。</p>
 
             </form>
