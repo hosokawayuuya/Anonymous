@@ -50,9 +50,11 @@ if (!$is_host && empty($nickname) && $_SERVER['REQUEST_METHOD'] === 'POST' && !e
         $count = $stmt->fetchColumn();
 
         if ($count > 0) {
-            throw new Exception('このニックネームは既に使用されています。別のニックネームを入力してください。');
-            //unset($_SESSION['nickname']);
+            $_SESSION['error_message'] = 'このニックネームは既に使用されています。別のニックネームを入力してください。';
+            header("Location: G1-3.php?room_key=$room_key&room_id=$room_id");
+            exit();
         }
+        
         $stmt = $pdo->prepare("INSERT INTO User (room_ID, user_name, team_ID, role_ID) VALUES (?, ?, NULL, NULL)");
         $stmt->execute([$room_id, $nickname]);
 
@@ -264,6 +266,12 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                 <form method="post" action="">
                     <input type="hidden" name="room_key" value="<?php echo htmlspecialchars($room_key); ?>">
                     <input type="hidden" name="room_id" value="<?php echo htmlspecialchars($room_id); ?>">
+                    <?php
+                    if (isset($_SESSION['error_message'])) {
+                        echo '<p class="error-message">' . $_SESSION['error_message'] . '</p>';
+                        unset($_SESSION['error_message']);
+                    }
+                    ?>
                     <label for="nickname">ニックネーム:</label>
                     <input type="text" id="nickname" name="nickname" required>
                     <button type="submit" class="Button-style">参加</button>
@@ -273,6 +281,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
             } ?>
         </div>
     </div>
+
     
     <div class="container">
         <div class="team-box red-team">
