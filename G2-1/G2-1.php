@@ -270,7 +270,7 @@ foreach ($users as $user) {
     function updateLog() {
         $.get('get_log.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             if (response.status === 'success') {
-                let logHtml = '';
+                let logHtml = '';                    
                 response.logs.forEach(log => {
                     logHtml += '<tr><td>' + escapeHtml(log.team_name) + '</td><td>' + escapeHtml(log.hint) + '</td><td>' + escapeHtml(log.sheet) + '</td></tr>';
                 });
@@ -456,23 +456,28 @@ foreach ($users as $user) {
                     </tr>
                 </thead>
             <tbody>
-                    <?php
+                <?php
                     $stmt = $pdo->prepare("
-                    SELECT 
-                        u.user_name,  -- ユーザー名を取得
-                        l.hint, 
-                        l.sheet 
-                    FROM Log l 
-                    JOIN User u ON l.user_ID = u.user_ID 
-                    WHERE l.room_ID = ? 
-                    ORDER BY l.log_ID DESC
-                ");
-                    $stmt->execute([$room_id]);
-                    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        SELECT 
+                            t.team_name,  -- チーム名を取得
+                            l.hint, 
+                            l.sheet 
+                        FROM 
+                            Log l 
+                            JOIN User u ON l.user_ID = u.user_ID 
+                            JOIN Team t ON u.team_ID = t.team_ID 
+                        WHERE 
+                            l.room_ID = ? 
+                        ORDER BY 
+                            l.log_ID DESC
+                    ");
+                $stmt->execute([$room_id]);
+                $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
  
                     foreach ($logs as $log) {
                         echo '<tr>';
-                        echo '<td>' . htmlspecialchars($log['user_name']) . '</td>';
+                        echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
                         echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
                         echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
                         echo '</tr>';
