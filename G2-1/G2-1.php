@@ -415,6 +415,10 @@ foreach ($users as $user) {
         <p>現在のターンではありません。待機してください。</p>
     <?php endif; ?>
 
+
+    <img src="../img/earth.png" alt="宇宙遊泳" class="earth-image">
+
+    
     <div id="overlay" class="overlay"></div>
     <div id="flip-popup" class="flippopup">
         <p>カードをめくりますか？</p>
@@ -445,8 +449,8 @@ foreach ($users as $user) {
             <li></li>
             <li></li>
         </ul>
-        <div class="log">
-            <h3>宇宙遊泳記録</h3>
+        <div class="log">  
+        <h3 style="text-align: center;">宇宙遊泳記録</h3>
             <table id="log-table">
                 <thead>
                     <tr>

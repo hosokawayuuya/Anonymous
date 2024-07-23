@@ -587,3 +587,13 @@ body {
     bottom:-12px;
     right:-12px;
 }
+
+.earth-image {
+    position: fixed;
+    left: 170px;
+    bottom: 30px;
+    width: 200px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
