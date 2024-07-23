@@ -201,13 +201,13 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
 
                 roles.forEach(function(user) {
                     if (user.team_ID == 1 && user.role_ID == 1) {
-                        $('#operator-red').append('<p>' + user.user_name + '</p>');
+                        $('#operator-red').append('<h3>' + user.user_name + '</h3>');
                     } else if (user.team_ID == 1 && user.role_ID == 2) {
-                        $('#astronaut-red').append('<p>' + user.user_name + '</p>');
+                        $('#astronaut-red').append('<h3>' + user.user_name + '</h3>');
                     } else if (user.team_ID == 2 && user.role_ID == 1) {
-                        $('#operator-blue').append('<p>' + user.user_name + '</p>');
+                        $('#operator-blue').append('<h3>' + user.user_name + '</h3>');
                     } else if (user.team_ID == 2 && user.role_ID == 2) {
-                        $('#astronaut-blue').append('<p>' + user.user_name + '</p>');
+                        $('#astronaut-blue').append('<h3>' + user.user_name + '</h3>');
                     }
                 });
             }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -277,7 +277,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                     <button type="submit" class="Button-style">参加</button>
                 </form>
             <?php } else {
-                echo "<p>参加者: $nickname</p>";
+                echo "<h3>参加者: $nickname</h3>";
             } ?>
         </div>
     </div>
