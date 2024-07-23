@@ -400,7 +400,7 @@ foreach ($users as $user) {
         <div class="hint-display">
             <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
             <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
-            <button id="end-turn">推測終了</button>
+            <button id="end-turn" class="Button-style">推測終了</button>
         </div>
     <?php else: ?>
         <p>現在のターンではありません。待機してください。</p>
