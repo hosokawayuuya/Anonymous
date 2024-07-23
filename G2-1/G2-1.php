@@ -400,7 +400,7 @@ foreach ($users as $user) {
                     <?php endfor; ?>
                 </select>
                 <button type="submit" class="Button-style">送信</button>
-                <p id="error-message" class="hint-error">ヒントは10文字以内で入力してください。</p>
+                <p id="error-message">ヒントは10文字以内で入力してください。</p>
 
             </form>
         </div>
@@ -415,10 +415,9 @@ foreach ($users as $user) {
         <p>現在のターンではありません。待機してください。</p>
     <?php endif; ?>
 
-
     <img src="../img/earth.png" alt="宇宙遊泳" class="earth-image">
 
-    
+
     <div id="overlay" class="overlay"></div>
     <div id="flip-popup" class="flippopup">
         <p>カードをめくりますか？</p>
@@ -449,7 +448,7 @@ foreach ($users as $user) {
             <li></li>
             <li></li>
         </ul>
-        <div class="log">  
+        <div class="log">
         <h3 style="text-align: center;">宇宙遊泳記録</h3>
             <table id="log-table">
                 <thead>
@@ -459,35 +458,39 @@ foreach ($users as $user) {
                         <th>数</th>
                     </tr>
                 </thead>
-            <tbody>
-                <?php
-                    $stmt = $pdo->prepare("
-                        SELECT 
-                            t.team_name,  -- チーム名を取得
-                            l.hint, 
-                            l.sheet 
-                        FROM 
-                            Log l 
-                            JOIN User u ON l.user_ID = u.user_ID 
-                            JOIN Team t ON u.team_ID = t.team_ID 
-                        WHERE 
-                            l.room_ID = ? 
-                        ORDER BY 
-                            l.log_ID DESC
-                    ");
-                $stmt->execute([$room_id]);
-                $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                
- 
-                    foreach ($logs as $log) {
-                        echo '<tr>';
-                        echo '<td>' . htmlspecialchars($log['team_name']) . '</td>';
-                        echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
-                        echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
-                        echo '</tr>';
-                    }
-                    ?>
-            </tbody>
+                <tbody>
+    <?php
+        $stmt = $pdo->prepare("
+            SELECT 
+                t.team_name,  -- チーム名を取得
+                l.hint, 
+                l.sheet,
+                u.team_ID  -- team_IDを取得
+            FROM 
+                Log l 
+                JOIN User u ON l.user_ID = u.user_ID 
+                JOIN Team t ON u.team_ID = t.team_ID 
+            WHERE 
+                l.room_ID = ? 
+            ORDER BY 
+                l.log_ID DESC
+        ");
+        $stmt->execute([$room_id]);
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($logs as $log) {
+            // チームIDに応じて色を設定
+            $color = ($log['team_ID'] == 1) ? 'red' : 'blue';
+            
+            echo '<tr>';
+            echo '<td style="color: ' . htmlspecialchars($color) . ';">' . htmlspecialchars($log['team_name']) . '</td>';
+            echo '<td>' . htmlspecialchars($log['hint']) . '</td>';
+            echo '<td>' . htmlspecialchars($log['sheet']) . '</td>';
+            echo '</tr>';
+        }
+    ?>
+</tbody>
+
         </div>
     </div> 
 </body>
