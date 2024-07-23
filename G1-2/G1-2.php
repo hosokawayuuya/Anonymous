@@ -36,7 +36,7 @@
                         <p class="text-center mb-0">ルームに入る前に、あなたのニックネームを設定してください</p>
                         <form action="create_dynamic_url.php" method="POST">
                             <div class="form-floating mb-3">
-                                <input type="text" class="form-control" id="floatingText" name="nickname" placeholder="jhondoe">
+                                <input type="text" class="form-control" id="floatingText" maxlength="8" name="nickname" placeholder="jhondoe">
                                 <label for="floatingText">ニックネームを入力してください。</label>
                                 <?php if (!empty($_SESSION['error_message'])) { ?>
                                     <div class="error-message"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></div>

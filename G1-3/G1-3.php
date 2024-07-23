@@ -273,7 +273,7 @@ $roleNames = [1 => 'オペレーター', 2 => 'アストロノーツ'];
                     }
                     ?>
                     <label for="nickname">ニックネーム:</label>
-                    <input type="text" id="nickname" name="nickname" required>
+                    <input type="text" id="nickname" maxlength="8" name="nickname" required>
                     <button type="submit" class="Button-style">参加</button>
                 </form>
             <?php } else {
