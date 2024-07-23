@@ -168,17 +168,16 @@ foreach ($users as $user) {
                         location.reload(); // カードをめくった直後にページをリロード
                     }
                 } else if (response.status === 'win') {
-                    gameEnded = true;
                     if (response.message === '赤チームの勝ち！') {
-                        $('#winred-message').text(response.message);
-                        $('#flip-popup').hide();
-                        $('#winred-popup').show();
-                    } else {
-                        $('#winblue-message').text(response.message);
-                        $('#flip-popup').hide();               
-                        $('#winblue-popup').show();
-                    }
-                    $('#overlay').show(); // 勝利時のポップアップを表示
+                                $('#winred-message').text(response.message);
+                                $('#flip-popup').hide();
+                                $('#winred-popup').show();
+                            } else {
+                                $('#winblue-message').text(response.message);
+                                $('#flip-popup').hide();
+                                $('#winblue-popup').show();
+                            }
+                            $('#overlay').show(); // 勝利時のポップアップを表示
                 } else {
                     alert(response.message);
                 }
@@ -305,15 +304,9 @@ foreach ($users as $user) {
         $.get('win_check.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             if (response.status === 'win') {
                 gameEnded = true;
-                if (response.message === '赤チームの勝ち！') {
-                    $('#winred-message').text(response.message);
-                    $('#flip-popup').hide();
-                    $('#winred-popup').show();
-                } else {                    
-                    $('#winblue-message').text(response.message);
-                    $('#flip-popup').hide();               
-                    $('#winblue-popup').show();
-                }
+                $('#win-message').text(response.message);
+                $('#flip-popup').hide();
+                $('#win-popup').show();
                 $('#overlay').show(); // 勝利時のポップアップを表示
             }
         }, 'json');
@@ -340,10 +333,10 @@ foreach ($users as $user) {
                     <span id="red-count"><?php echo $red_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
-                    <div><?php echo $red_operator_names_str; ?></div>
+                    <div class="namerep"><?php echo $red_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
-                    <div><?php echo $red_astronaut_names_str; ?></div>
+                    <div class="namerep"><?php echo $red_astronaut_names_str; ?></div>
                 </div>
             </div>
 
@@ -378,10 +371,10 @@ foreach ($users as $user) {
                     <span id="blue-count"><?php echo $blue_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
-                <div><?php echo $blue_operator_names_str; ?></div>
+                    <div class="namerep"><?php echo $blue_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
-                <div><?php echo $blue_astronaut_names_str; ?></div>
+                    <div class="namerep"><?php echo $blue_astronaut_names_str; ?></div>
                 </div>
             </div>
         </div>
@@ -407,7 +400,7 @@ foreach ($users as $user) {
         <div class="hint-display">
             <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
             <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
-            <button id="end-turn" class="Button-style">推測終了</button>
+            <button id="end-turn">推測終了</button>
         </div>
     <?php else: ?>
         <p>現在のターンではありません。待機してください。</p>

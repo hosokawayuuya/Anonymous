@@ -226,7 +226,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     color: white;
-    height: 250px;
+    height: 280px;
     width:  224px;
  }
  
@@ -559,4 +559,31 @@ body {
 .Button-style:hover {
   background-color: #ff0066;
   color: #fff0f8;
+}
+
+
+
+.namerep{
+    margin:2em 0;
+    position: relative;
+    padding: 0.25em 1em;
+    border: solid 2px #ffcb8a;
+    border-radius: 3px 0 3px 0;
+}
+.namerep:before,.box18:after
+{
+    content: '';
+    position: absolute;
+    width:10px;
+    height: 10px;
+    border: solid 2px #ffcb8a;
+    border-radius: 50%;
+}
+.namerep:after {
+    top:-12px;
+    left:-12px;
+}
+.namerep:before {
+    bottom:-12px;
+    right:-12px;
 }
