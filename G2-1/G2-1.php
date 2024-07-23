@@ -333,10 +333,10 @@ foreach ($users as $user) {
                     <span id="red-count"><?php echo $red_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
-                    <div><?php echo $red_operator_names_str; ?></div>
+                    <div class="namerep"><?php echo $red_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
-                    <div><?php echo $red_astronaut_names_str; ?></div>
+                    <div class="namerep"><?php echo $red_astronaut_names_str; ?></div>
                 </div>
             </div>
 
@@ -371,10 +371,10 @@ foreach ($users as $user) {
                     <span id="blue-count"><?php echo $blue_count; ?></span></div>
                 <div class="team-info">
                     <p>オペレーター</p>
-                <div><?php echo $blue_operator_names_str; ?></div>
+                    <div class="namerep"><?php echo $blue_operator_names_str; ?></div>
                     <br>
                     <p>アストロノーツ</p>
-                <div><?php echo $blue_astronaut_names_str; ?></div>
+                    <div class="namerep"><?php echo $blue_astronaut_names_str; ?></div>
                 </div>
             </div>
         </div>
@@ -400,7 +400,7 @@ foreach ($users as $user) {
         <div class="hint-display">
             <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
             <p>めくれる枚数: 残り<?php echo htmlspecialchars($original_hint_count + 1); ?>枚</p>
-            <button id="end-turn" class="Button-style">推測終了</button>
+            <button id="end-turn">推測終了</button>
         </div>
     <?php else: ?>
         <p>現在のターンではありません。待機してください。</p>
