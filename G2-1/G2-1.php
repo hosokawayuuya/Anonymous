@@ -187,9 +187,13 @@ foreach ($users as $user) {
         $('#flip-popup').removeClass('active');
     });
 
-    $('#return-to-room').click(function() {
-        window.location.href = '../G1-2/G1-2.php'; // ルーム作成に戻る
-    });
+    $('#return-to-room-red').click(function() {
+                window.location.href = '../G1-2/G1-2.php';
+            });
+ 
+            $('#return-to-room-blue').click(function() {
+                window.location.href = '../G1-2/G1-2.php';
+            });
 
     $('#hint-form').submit(function(e) {
         e.preventDefault();
@@ -307,8 +311,14 @@ foreach ($users as $user) {
     </script>
 </head>
 <body>
-<?php require '../header/header.php';?>
-    <div class="area">
+            
+
+    <div class="area">  
+    <?php require '../header/header.php';?>
+
+    <div class="counts">
+            <div id="current-team-role"><?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?></div>
+            </div>
     <ul class="circles">
         <div class="container">
            <div class="team-box red-team">
@@ -404,11 +414,7 @@ foreach ($users as $user) {
     </div>
 </div>
 
-        <div class="main-content">
-            <div class="counts">
-                <div id="current-team-role"><?php echo ($current_team == 1 ? '赤' : '青') . 'チームの' . ($current_role == 1 ? 'オペレーター' : 'アストロノーツ'); ?></div>
-            </div>
-        <li></li>
+            <li></li>
             <li></li>
             <li></li>
             <li></li>

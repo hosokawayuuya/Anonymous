@@ -145,7 +145,7 @@ body {
     display: flex;
     justify-content: space-between;
     width: 80%;
-    margin-top: 90px; /* 上部のマージンを追加 */
+    margin-top: 140px; /* 上部のマージンを追加 */
  }
  
  .team-box {
@@ -381,7 +381,7 @@ body {
 .log {
     position: absolute;
     right: 160px;
-    bottom: 50px;
+    bottom: 10px;
     background-color: rgba(0, 0, 0, 0.7); /* 半透明の背景 */
     border-radius: 10px;
     width: 223.88px; /* 幅を指定 */
@@ -440,8 +440,8 @@ body {
 
 .rno-counts {
     position: fixed;
-    left: 330px;
-    top: 120px;
+    left: 340px;
+    top: 180px;
     font-size: 40px; /* ここで文字サイズを指定 */
     font-weight: bold; /* 太字にする場合 */
 
@@ -449,8 +449,8 @@ body {
 
 .bno-counts {
     position: fixed;
-    right: 330px;
-    top: 120px;
+    right: 340px;
+    top: 180px;
     font-size: 40px; /* ここで文字サイズを指定 */
     font-weight: bold; /* 太字にする場合 */
 }
@@ -458,4 +458,9 @@ body {
 #error-message {
     color: black; /* テキスト色を白に設定 */
     display: none; /* デフォルトで非表示 */
+}
+
+.counts {
+    position: fixed;
+    top:90px;
 }
