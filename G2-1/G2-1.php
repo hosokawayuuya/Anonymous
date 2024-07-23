@@ -168,16 +168,18 @@ foreach ($users as $user) {
                         location.reload(); // カードをめくった直後にページをリロード
                     }
                 } else if (response.status === 'win') {
+                    gameEnded = true;
                     if (response.message === '赤チームの勝ち！') {
-                                $('#winred-message').text(response.message);
-                                $('#flip-popup').hide();
-                                $('#winred-popup').show();
-                            } else {
-                                $('#winblue-message').text(response.message);
-                                $('#flip-popup').hide();
-                                $('#winblue-popup').show();
-                            }
-                            $('#overlay').show(); // 勝利時のポップアップを表示
+                        $('#winred-message').text(response.message);
+                        $('#flip-popup').hide();
+                        $('#winred-popup').show();
+                   } else {
+                        $('#winblue-message').text(response.message);
+                        $('#flip-popup').hide();              
+                        $('#winblue-popup').show();
+                   }
+                $('#overlay').show(); // 勝利時のポップアップを表示
+ 
                 } else {
                     alert(response.message);
                 }
@@ -304,10 +306,17 @@ foreach ($users as $user) {
         $.get('win_check.php', {room_id: '<?php echo $room_id; ?>'}, function(response) {
             if (response.status === 'win') {
                 gameEnded = true;
-                $('#win-message').text(response.message);
-                $('#flip-popup').hide();
-                $('#win-popup').show();
+                    if (response.message === '赤チームの勝ち！') {
+                        $('#winred-message').text(response.message);
+                        $('#flip-popup').hide();
+                        $('#winred-popup').show();
+                   } else {
+                        $('#winblue-message').text(response.message);
+                        $('#flip-popup').hide();              
+                        $('#winblue-popup').show();
+                   }
                 $('#overlay').show(); // 勝利時のポップアップを表示
+ 
             }
         }, 'json');
     }
