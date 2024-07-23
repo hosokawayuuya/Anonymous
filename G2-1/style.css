@@ -35,13 +35,22 @@ body {
     text-align: center;
     vertical-align: middle;
     line-height: 100px;
-    color: orange;
-    background-color: gray;
+    color: #FFD700; /* ゴールド */
+    background-color:#0f3460;
     font-weight: bold;
-    border: 2px solid black;
+    border: 2px solid #00CED1; /* ディープスカイブルー */
+    border-radius: 10px; /* 角を少し丸める */
     cursor: pointer;
     background-size: cover;
+    box-shadow: 0 0 10px rgba(0, 206, 209, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.5); /* 外側と内側に光を追加 */
 }
+
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 
 .hint-input, .end-turn, #hint-display {
     margin-top: 20px;
