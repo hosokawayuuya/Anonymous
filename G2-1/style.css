@@ -610,3 +610,49 @@ body {
 #error-message.hint-error{
     color:white;
 }
+
+/* 宇宙テーマのヒント入力スタイル */
+.space-theme {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.space-theme label {
+    color: #ffffff; /* 白色 */
+    font-weight: bold;
+}
+
+.space-input, .space-select {
+    background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒 */
+    border: 1px solid #ffffff; /* 白色のボーダー */
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: #ffffff;
+    font-family: 'Exo', sans-serif;
+}
+
+.space-input:focus, .space-select:focus {
+    outline: none;
+    border-color: #00ffcc; /* シアン色のフォーカス */
+    box-shadow: 0 0 5px #00ffcc;
+}
+
+.space-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px 12px;
+    padding-right: 30px;
+}
+
+/* ヒント入力のエラーメッセージ */
+.hint-error {
+    color: #ff4444; /* 赤色 */
+    font-weight: bold;
+    display: none;
+}

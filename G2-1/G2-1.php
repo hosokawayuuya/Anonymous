@@ -389,22 +389,20 @@ foreach ($users as $user) {
         </div>
         <div class="hint">
     <?php if ($is_current_turn && $role_id == 1): ?>
-        <div class="hint-input">
+        <div class="hint-input space-theme">
             <form id="hint-form">
                 <label for="hint">ヒント:</label>
-                <input type="text" id="hint" name="hint">
+                <input type="text" id="hint" name="hint" class="space-input">
                 <label for="hint-count">枚数:</label>
-                <select id="hint-count" name="hint-count" required>
+                <select id="hint-count" name="hint-count" class="space-select" required>
                     <?php for ($i = 1; $i <= 9; $i++): ?>
                         <option value="<?php echo $i; ?>"><?php echo $i; ?></option>
                     <?php endfor; ?>
                 </select>
                 <button type="submit" class="Button-style">送信</button>
-                <p id="error-message">ヒントは10文字以内で入力してください。</p>
-
+                <p id="error-message" class="hint-error">ヒントは10文字以内で入力してください。</p>
             </form>
         </div>
-
     <?php elseif ($is_current_turn && $role_id == 2): ?>
         <div class="hint-display">
             <p>ヒント: <?php echo htmlspecialchars($hint_text); ?></p>
