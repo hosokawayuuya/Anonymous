@@ -299,7 +299,6 @@ body {
 
 h1, p {
    color: #00f5d4; /* 明るい青緑色で未来的な印象を与える */
-   text-shadow: 0 0 5px rgba(0, 255, 255, 0.5), 0 0 10px rgba(0, 255, 255, 0.5), 0 0 15px rgba(0, 255, 255, 0.5);
    /* グローエフェクト */
    background: linear-gradient(45deg, #00f5d4, #00aaff);
    -webkit-background-clip: text; /* WebKitブラウザ用 */
@@ -315,9 +314,6 @@ h1{
    animation: pulse 1.5s infinite; /* アニメーション */
 }
 
-p{
-   animation: pulse 1.5s infinite; /* アニメーション */
-}
 
 @keyframes pulse {
    0% {
