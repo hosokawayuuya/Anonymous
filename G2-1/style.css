@@ -454,11 +454,11 @@ body {
 /* ログのセクション */
 .log {
     position: absolute;
-    right: 153px;
+    right: 90px;
     bottom: 10px;
     background-color: rgba(0, 0, 0, 0.7); /* 半透明の背景 */
     border-radius: 10px;
-    width: 223.88px; /* 幅を指定 */
+    width: 350px; /* 幅を指定 */
     height: 290px;   /* 高さを指定 */
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     overflow: auto;  /* 内容がはみ出たときにスクロールバーを表示 */
@@ -564,6 +564,7 @@ body {
 
 
 .namerep{
+
     position: relative;
     padding: 0.25em 1em;
     border: solid 2px #ffcb8a;
