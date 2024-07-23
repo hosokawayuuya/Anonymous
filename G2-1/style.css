@@ -597,3 +597,7 @@ body {
     display: block;
     margin: 0 auto;
 }
+
+#error-message.hint-error{
+    color:white;
+}
