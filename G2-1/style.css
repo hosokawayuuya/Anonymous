@@ -223,13 +223,13 @@ body {
  }
  
  .team-box {
-    width: 30%;
     padding: 20px;
     border-radius: 10px;
     color: white;
     height: 250px;
-    width:  200px;
+    width:  224px;
  }
+ 
  
  .red-team {
     background-color: #ff4c4c;
@@ -454,7 +454,7 @@ body {
 /* ログのセクション */
 .log {
     position: absolute;
-    right: 160px;
+    right: 153px;
     bottom: 10px;
     background-color: rgba(0, 0, 0, 0.7); /* 半透明の背景 */
     border-radius: 10px;
