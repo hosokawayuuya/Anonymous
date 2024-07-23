@@ -168,11 +168,16 @@ foreach ($users as $user) {
                         location.reload(); // カードをめくった直後にページをリロード
                     }
                 } else if (response.status === 'win') {
-                    gameEnded = true;
-                    $('#win-message').text(response.message);
-                    $('#flip-popup').hide();
-                    $('#win-popup').show();
-                    $('#overlay').show(); // 勝利時のポップアップを表示
+                    if (response.message === '赤チームの勝ち！') {
+                                $('#winred-message').text(response.message);
+                                $('#flip-popup').hide();
+                                $('#winred-popup').show();
+                            } else {
+                                $('#winblue-message').text(response.message);
+                                $('#flip-popup').hide();
+                                $('#winblue-popup').show();
+                            }
+                            $('#overlay').show(); // 勝利時のポップアップを表示
                 } else {
                     alert(response.message);
                 }
@@ -408,10 +413,16 @@ foreach ($users as $user) {
         <button id="cancel-flip">いいえ</button>
     </div>
 
-    <div class="popup" id="win-popup">
-        <p id="win-message"></p>
-        <button id="return-to-room">ルーム作成に戻る</button>
+    <div class="winred-popup" id="winred-popup">
+        <p id="winred-message"></p>
+        <button id="return-to-room-red">ルーム作成に戻る</button>
     </div>
+
+    <div class="winblue-popup" id="winblue-popup">
+        <p id="winblue-message"></p>
+        <button id="return-to-room-blue">ルーム作成に戻る</button>
+    </div>
+
 </div>
 
             <li></li>
@@ -430,7 +441,7 @@ foreach ($users as $user) {
             <table id="log-table">
                 <thead>
                     <tr>
-                        <th>名前</th>
+                        <th>チーム名</th>
                         <th>ヒント</th>
                         <th>数</th>
                     </tr>
