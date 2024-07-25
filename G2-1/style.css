@@ -43,7 +43,7 @@ body {
     cursor: pointer;
     background-size: cover;
     box-shadow: 0 0 10px rgba(0, 206, 209, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.5); /* 外側と内側に光を追加 */
-    -webkit-text-stroke: 0.375px #000000;
+    /* -webkit-text-stroke: 0.375px #000000; */
 }
 
 @keyframes gradientAnimation {
