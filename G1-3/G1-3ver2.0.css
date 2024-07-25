@@ -310,7 +310,6 @@ h1, p {
 
 h1{
    font-size: 3em;
-   margin-bottom: 20px;
    animation: pulse 1.5s infinite; /* アニメーション */
 }
 
